@@ -18,7 +18,8 @@ Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Clau
 | joueur/profil.md | Niveau, plateformes, objectifs, habitudes, préférences | Au début de chaque conversation |
 | joueur/progression.md | Thème de travail, points faibles et forts, repères montrés | Au début de chaque conversation |
 | joueur/ouvertures.md | Ouvertures travaillées et vues | Quand une ouverture est jouée, analysée ou discutée |
-| joueur/historique.md | Parties jouées et leurs leçons | Pour une analyse, un bilan, ou une question sur une partie passée |
+| joueur/historique.md | Index des parties: une ligne par partie, avec des mots-clés | Pour une analyse, un bilan, ou une question sur une partie passée |
+| joueur/parties/partie-NNN.md | Une partie: coups, leçons, remarques du joueur | Seulement les parties utiles, repérées dans l'index |
 
 ## Règles générales
 - Les documents instructions.md, regles/, outils/ et modeles/ sont communs à tous les joueurs. Pendant les parties et les analyses, Claude ne les modifie pas: si une règle paraît à améliorer, il le propose au joueur.
@@ -28,12 +29,13 @@ Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Clau
 
 ## Initialisation (première conversation)
 Si les documents joueur/ n'existent pas encore:
-1. Créer joueur/profil.md, joueur/progression.md, joueur/ouvertures.md et joueur/historique.md à partir des modèles du dossier modeles/.
+1. Créer joueur/profil.md, joueur/progression.md, joueur/ouvertures.md et joueur/historique.md à partir des modèles du dossier modeles/. Les fiches joueur/parties/ seront créées partie après partie, à partir de modeles/partie.md.
 2. Poser au joueur, une par une, les questions qui correspondent aux zones [A COMPLETER] de joueur/profil.md, et remplir le document.
 3. Ne rien inventer: une information inconnue reste vide et se complète au fil des parties.
 
 ## Mise à jour après une partie ou une analyse
-- joueur/historique.md: nouvelle entrée (coups, leçons, points positifs).
+- joueur/parties/partie-NNN.md: nouvelle fiche à partir de modeles/partie.md (coups, leçons, remarques du joueur, points positifs). Numéro sur trois chiffres, à la suite du dernier de l'index.
+- joueur/historique.md: nouvelle ligne dans l'index, avec 5 à 8 mots-clés choisis pour retrouver la partie plus tard (ouverture, thèmes tactiques, erreurs et réussites marquantes). Si une partie déjà indexée est complétée, mettre aussi sa ligne à jour.
 - joueur/ouvertures.md: ouverture jouée, ce qui était bon, ce qui était mieux. Bien distinguer ce qui a été joué en partie (travaillé) de ce qui a seulement été expliqué (vu).
 - joueur/progression.md: points faibles et forts avec le numéro de la partie et le coup, repères nouveaux, bilan du thème en cours.
 - joueur/profil.md: niveau ou classement s'ils ont changé, habitudes et préférences exprimées par le joueur.
