@@ -64,3 +64,8 @@ Utilisateurs de Claude Code: le fichier CLAUDE.md permet de travailler directeme
 ## Remarques
 - Les pages d'analyse demandent que la session de Claude puisse installer des paquets Python et télécharger Stockfish depuis GitHub. Sinon, Claude analyse quand même la partie, mais sans moteur, et doit le préciser.
 - Pièces de l'échiquier: jeu cburnett de Colin M.L. Burnett. Moteur: Stockfish.
+
+## Licence
+Ce dépôt est distribué sous licence MIT (voir le fichier LICENSE).
+
+Les outils téléchargés à l'installation gardent leur propre licence et ne font pas partie du dépôt: python-chess et Stockfish (GPL-3.0). Les pièces cburnett, générées depuis python-chess au moment de construire une page d'analyse, restent sous la licence de leur auteur.
