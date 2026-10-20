@@ -1,0 +1,547 @@
+{
+ "titre": "Fourchette en d5",
+ "flip": true,
+ "depart": "Claude a les Blancs et commence avec le pion roi.",
+ "entete": "<div class=\"eyebrow\"><span>Partie d'exemple</span><span>Avec les Noirs</span></div>\n    <h1>Fourchette en d5</h1>\n    <p class=\"players\"><strong>Claude</strong> (Blancs) contre <strong>Joueur</strong> (Noirs). Partie italienne, <span class=\"mono\">1.e4 e5 2.Cf3 Cc6 3.Fc4</span>. Partie arrêtée au 20e coup, position perdue pour les Noirs <span class=\"result\">environ +10</span></p>",
+ "coups": "1.e4 e5 2.Cf3 Cc6 3.Fc4 d6 4.d4 Fe6 5.d5 Fg4 6.dxc6 bxc6 7.h3 Fe6 8.Fxe6 fxe6 9.Cc3 Cf6 10.O-O d5 11.Cxe5 Fd6 12.Cxc6 Dd7 13.Cd4 dxe4 14.Fg5 O-O 15.Fxf6 Txf6 16.Cxe4 Fe5 17.Cxf6+ gxf6 18.Dg4+ Rf7 19.Tad1 f5 20.Cxf5",
+ "commentaires": [
+  {
+   "tag": "bon",
+   "text": "Ouverture habituelle des Blancs.",
+   "best": "e4"
+  },
+  {
+   "tag": "bon",
+   "text": "Bon coup: la réponse habituelle contre 1.e4.",
+   "best": "e5"
+  },
+  {
+   "tag": "bon",
+   "text": "Le cavalier attaque le pion e5.",
+   "best": "Cf3",
+   "rouge": [
+    [
+     "f3",
+     "e5"
+    ]
+   ]
+  },
+  {
+   "tag": "excellent",
+   "text": "Meilleur coup: le cavalier protège e5 en se développant.",
+   "best": "Cc6"
+  },
+  {
+   "tag": "bon",
+   "text": "Partie italienne: le fou vise le pion f7.",
+   "best": "d4",
+   "rouge": [
+    [
+     "c4",
+     "f7"
+    ]
+   ]
+  },
+  {
+   "tag": "imprecis",
+   "text": "Solide, mais un peu passif. 3...Cf6 (défense des deux cavaliers) ou 3...Fc5 (Giuoco piano) développent une pièce de plus. Le pion d6 protège e5 une deuxième fois et ouvre la diagonale du fou c8.",
+   "best": "Cf6"
+  },
+  {
+   "tag": "bon",
+   "text": "Le pion d4 attaque e5. Compte: e5 est attaqué deux fois (pion d4, cavalier f3) et défendu deux fois (pion d6, cavalier c6). Il n'est pas perdu, mais il faut une réponse.",
+   "best": "c3",
+   "rouge": [
+    [
+     "d4",
+     "e5"
+    ],
+    [
+     "f3",
+     "e5"
+    ]
+   ]
+  },
+  {
+   "tag": "gaffe",
+   "text": "Gaffe. Le fou e6 se développe et attaque le fou c4, mais il se place juste à côté du cavalier c6, sur la même rangée, devant le pion d4. Le pion peut avancer en d5 et attaquer les deux pièces à la fois: fourchette de pion (flèches rouges). Le pion d5 serait protégé par le pion e4 et le fou c4, donc une pièce est perdue. Il fallait 4...exd4: 5.Cxd4 Cf6, position égale.",
+   "best": "exd4",
+   "rouge": [
+    [
+     "d4",
+     "d5"
+    ]
+   ]
+  },
+  {
+   "tag": "excellent",
+   "text": "Fourchette de pion: le pion d5 attaque le cavalier c6 et le fou e6.",
+   "best": "d5",
+   "rouge": [
+    [
+     "d5",
+     "c6"
+    ],
+    [
+     "d5",
+     "e6"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Le moins mauvais: une pièce est perdue quoi qu'il arrive. Le fou se sauve et cloue le cavalier f3 devant la dame d1. 5...Fc8 revenait au même.",
+   "best": "Fc8",
+   "rouge": [
+    [
+     "g4",
+     "d1"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Le pion prend le cavalier. Les Blancs ont une pièce de plus.",
+   "best": "dxc6"
+  },
+  {
+   "tag": "bon",
+   "text": "Meilleur coup: le pion reprend vers le centre. Bilan: un cavalier (3) contre un pion (1), donc 2 points de retard.",
+   "best": "bxc6"
+  },
+  {
+   "tag": "bon",
+   "text": "Le pion h3 chasse le fou qui cloue le cavalier f3. 7.O-O était un peu plus précis.",
+   "best": "O-O",
+   "rouge": [
+    [
+     "h3",
+     "g4"
+    ]
+   ]
+  },
+  {
+   "tag": "imprecis",
+   "text": "Imprécis. Le fou revient en e6 et propose l'échange. Avec une pièce de moins, les échanges aident l'adversaire, et après 8.Fxe6 fxe6 les Noirs ont deux pions sur la colonne e (pions doublés e5 et e6). 7...Fh5 gardait le clouage.",
+   "best": "Fh5",
+   "rouge": [
+    [
+     "c4",
+     "e6"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Les Blancs acceptent l'échange.",
+   "best": "Fxe6"
+  },
+  {
+   "tag": "bon",
+   "text": "Seule reprise. Pions doublés en e5 et e6, mais la colonne f s'ouvre pour la tour h8 après le roque.",
+   "best": "fxe6"
+  },
+  {
+   "tag": "bon",
+   "text": "Le cavalier se développe et protège e4. 9.Cg5 (attaque e6) était un peu plus fort.",
+   "best": "Cg5"
+  },
+  {
+   "tag": "bon",
+   "text": "Meilleur coup: le cavalier se développe et attaque le pion e4, protégé par le cavalier c3.",
+   "best": "Cf6",
+   "rouge": [
+    [
+     "f6",
+     "e4"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Petit roque.",
+   "best": "O-O"
+  },
+  {
+   "tag": "erreur",
+   "text": "Erreur. Le pion d6 était le seul défenseur du pion e5, attaqué par le cavalier f3. En avançant, il le laisse sans protection: 11.Cxe5 prend un pion gratuit (flèche rouge). Réflexe: avant de bouger un pion, regarder ce qu'il protège. Mieux: 10...Fe7 puis petit roque.",
+   "best": "Fe7",
+   "rouge": [
+    [
+     "f3",
+     "e5"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Le cavalier prend le pion gratuit.",
+   "best": "Cxe5"
+  },
+  {
+   "tag": "excellent",
+   "text": "Meilleur coup: le fou se développe en attaquant le cavalier e5.",
+   "best": "Fd6",
+   "rouge": [
+    [
+     "d6",
+     "e5"
+    ]
+   ]
+  },
+  {
+   "tag": "imprecis",
+   "text": "Imprécision de Claude: le cavalier prend un pion et attaque la dame d8, mais il s'aventure loin. 12.Cf3 était plus prudent.",
+   "best": "Cf3",
+   "rouge": [
+    [
+     "c6",
+     "d8"
+    ]
+   ]
+  },
+  {
+   "tag": "excellent",
+   "text": "Meilleur coup du moteur: la dame se met à l'abri en attaquant le cavalier c6. Les autres coups perdaient plus (12...Dc8? 13.e5).",
+   "best": "Dd7",
+   "rouge": [
+    [
+     "d7",
+     "c6"
+    ]
+   ]
+  },
+  {
+   "tag": "imprecis",
+   "text": "Imprécision de Claude: 13.e5 était plus fort. Le pion e5 attaquait le cavalier f6 et le fou d6 en même temps (encore une fourchette de pion). Le cavalier recule au centre.",
+   "best": "e5"
+  },
+  {
+   "tag": "imprecis",
+   "text": "Le pion d5 reprend un pion, mais 13...O-O d'abord était un peu meilleur: le roi est encore au centre, et après 14.Fg5 le cavalier f6 ne peut plus défendre longtemps le pion e4.",
+   "best": "O-O"
+  },
+  {
+   "tag": "bon",
+   "text": "Le fou attaque le cavalier f6, seul défenseur du pion e4.",
+   "best": "Fg5",
+   "rouge": [
+    [
+     "g5",
+     "f6"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Meilleur coup: le roi se met à l'abri.",
+   "best": "O-O"
+  },
+  {
+   "tag": "bon",
+   "text": "Le fou prend le cavalier. Le pion e4 perd son défenseur.",
+   "best": "Fxf6"
+  },
+  {
+   "tag": "imprecis",
+   "text": "Imprécis. Reprendre avec la tour pour garder les pions devant le roi est en général une bonne idée. Ici, elle permet 16.Cxe4: le cavalier prend le pion et attaque la tour f6 et le fou d6 en même temps (fourchette). Avec 15...gxf6, la colonne g s'ouvre bien devant le roi (16.Dg4+ Rh8 17.Dxe6, un pion perdu), mais la tour reste en f8. Le moteur préfère 15...gxf6 (environ 5 points de retard au lieu de 5,6): l'écart reste petit. La vraie erreur vient au coup suivant, 16...Fe5.",
+   "best": "gxf6"
+  },
+  {
+   "tag": "excellent",
+   "text": "Fourchette du cavalier: il prend le pion e4 et attaque la tour f6 et le fou d6.",
+   "best": "Cxe4",
+   "rouge": [
+    [
+     "e4",
+     "f6"
+    ],
+    [
+     "e4",
+     "d6"
+    ]
+   ]
+  },
+  {
+   "tag": "erreur",
+   "text": "Erreur. Le fou se sauve en attaquant le cavalier d4, une bonne idée, mais la tour f6 reste attaquée et vaut plus que le fou (5 contre 3). Le fou d6 était protégé par le pion c7: 17.Cxd6 cxd6 n'était qu'un échange. Il fallait sauver la tour: 16...Th6, ou 16...Tf4, qui attaque le cavalier e4. Règle: contre une fourchette, sauver la pièce la plus chère, si possible en créant une menace.",
+   "best": "Th6",
+   "rouge": [
+    [
+     "e4",
+     "f6"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Le cavalier prend la tour avec échec.",
+   "best": "Cxf6",
+   "rouge": [
+    [
+     "f6",
+     "g8"
+    ]
+   ]
+  },
+  {
+   "tag": "bon",
+   "text": "Meilleur coup: le pion prend le cavalier.",
+   "best": "gxf6"
+  },
+  {
+   "tag": "bon",
+   "text": "Echec sur la colonne g, ouverte après 17...gxf6.",
+   "best": "Dg4",
+   "rouge": [
+    [
+     "g4",
+     "g8"
+    ]
+   ]
+  },
+  {
+   "tag": "imprecis",
+   "text": "18...Rh8 était plus sûr. En f7, le roi est plus exposé (Dh5+ et Cxe6 arrivent vite).",
+   "best": "Rh8"
+  },
+  {
+   "tag": "bon",
+   "text": "La tour se place sur la colonne d, derrière le cavalier d4, face à la dame d7 (flèche rouge). Si le cavalier bouge, la tour attaque la dame: découverte préparée.",
+   "best": "Tad1",
+   "rouge": [
+    [
+     "d1",
+     "d7"
+    ]
+   ]
+  },
+  {
+   "tag": "erreur",
+   "text": "Erreur. Le pion attaque la dame g4, mais 20.Cxf5 prend le pion et libère la colonne d: la tour d1 attaque la dame d7 (flèche rouge). La dame doit fuir, et le cavalier f5 menace en plus Ch6+. 19...Fd6 était le meilleur: le fou revient sur la colonne d et coupe la ligne entre la tour et la dame. 19...Fxd4 20.Txd4 était aussi possible: moins bon que 19...Fd6, bien meilleur que 19...f5.",
+   "best": "Fd6",
+   "rouge": [
+    [
+     "d1",
+     "d7"
+    ]
+   ]
+  },
+  {
+   "tag": "excellent",
+   "text": "Attaque à la découverte: le cavalier prend le pion f5 et libère la colonne d. La tour d1 attaque la dame d7. Si la dame fuit (20...Db5), 21.Ch6+ chasse le roi, puis 22.Df3+ et 23.Dxa8 prennent la tour. Environ 10 points d'avance pour les Blancs: partie arrêtée ici.",
+   "best": "Cxf5",
+   "rouge": [
+    [
+     "d1",
+     "d7"
+    ],
+    [
+     "f5",
+     "h6"
+    ]
+   ]
+  }
+ ],
+ "variantes": [
+  {
+   "nom": "4...exd4",
+   "avant": 7,
+   "coups": [
+    "exd4",
+    "Cxd4",
+    "Cf6",
+    "Cc3",
+    "Fe7",
+    "O-O",
+    "O-O"
+   ],
+   "notes": [
+    "Position après 4.d4. Le pion e5 est attaqué par le pion d4 et le cavalier f3.",
+    "Le pion e5 prend d4: plus de tension au centre, et le pion d4 ne pourra jamais faire de fourchette.",
+    "Le cavalier reprend.",
+    "Le cavalier se développe et attaque e4.",
+    "Les Blancs protègent e4.",
+    "Le fou se développe et prépare le roque.",
+    "Petit roque blanc.",
+    "Petit roque noir: position égale, tout est développé."
+   ],
+   "rouge": {}
+  },
+  {
+   "nom": "La fourchette d5",
+   "avant": 7,
+   "coups": [
+    "Fe6",
+    "d5",
+    "Fxd5",
+    "exd5",
+    "Cce7"
+   ],
+   "notes": [
+    "Position après 4.d4.",
+    "4...Fe6?? Le fou se place à côté du cavalier c6, sur la même rangée.",
+    "5.d5: le pion attaque le cavalier c6 et le fou e6 en même temps.",
+    "Si le fou prend le pion (5...Fxd5)...",
+    "...le pion e4 reprend, et le pion d5 attaque de nouveau le cavalier c6. Les Noirs ont donné un fou pour un pion.",
+    "Le cavalier se sauve, mais la pièce est perdue. Réflexe: avant de poser deux pièces côte à côte sur une même rangée, regarder si un pion adverse peut avancer juste devant elles."
+   ],
+   "rouge": {
+    "2": [
+     [
+      "d5",
+      "c6"
+     ],
+     [
+      "d5",
+      "e6"
+     ]
+    ],
+    "4": [
+     [
+      "d5",
+      "c6"
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "10...Fe7",
+   "avant": 19,
+   "coups": [
+    "Fe7",
+    "Dd3",
+    "O-O"
+   ],
+   "notes": [
+    "Position après 10.O-O. Le pion e5 est attaqué par le cavalier f3 et protégé par le pion d6.",
+    "10...Fe7: le fou se développe, le pion d6 reste en place et continue de protéger e5.",
+    "Les Blancs continuent leur développement.",
+    "Roque: le roi est à l'abri et le pion e5 est toujours protégé."
+   ],
+   "rouge": {
+    "0": [
+     [
+      "f3",
+      "e5"
+     ],
+     [
+      "d6",
+      "e5"
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "15...gxf6",
+   "avant": 29,
+   "coups": [
+    "gxf6",
+    "Dg4+",
+    "Rh8",
+    "Dxe6",
+    "Dxe6",
+    "Cxe6",
+    "Tfe8"
+   ],
+   "notes": [
+    "Position après 15.Fxf6. Deux façons de reprendre: avec la tour ou avec le pion g7.",
+    "15...gxf6: la tour reste en f8 et protège le pion f6. Le fou d6 est protégé par le pion c7.",
+    "La dame donne échec sur la colonne g ouverte.",
+    "Le roi se met dans le coin.",
+    "La dame prend le pion e6, protégé seulement par la dame d7.",
+    "Les dames s'échangent.",
+    "Le cavalier reprend.",
+    "La tour attaque le cavalier. Les Blancs ont gagné un pion, mais les Noirs ont gardé leur tour: environ 5 points de retard, contre 6 après 15...Txf6 et 16.Cxe4."
+   ],
+   "rouge": {}
+  },
+  {
+   "nom": "16...Tf4",
+   "avant": 31,
+   "coups": [
+    "Tf4",
+    "Dd3",
+    "h6"
+   ],
+   "notes": [
+    "Position après 16.Cxe4: fourchette sur la tour f6 et le fou d6.",
+    "16...Tf4: la tour se sauve et attaque le cavalier e4. Si 17.Cxd6, 17...cxd6 reprend: simple échange.",
+    "La dame protège le cavalier e4.",
+    "Le pion h6 donne une case au roi. Les Noirs ont gardé leur tour."
+   ],
+   "rouge": {
+    "0": [
+     [
+      "e4",
+      "f6"
+     ],
+     [
+      "e4",
+      "d6"
+     ]
+    ],
+    "1": [
+     [
+      "f4",
+      "e4"
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "19...Fd6",
+   "avant": 37,
+   "coups": [
+    "Fd6",
+    "Tfe1",
+    "Tg8"
+   ],
+   "notes": [
+    "Position après 19.Tad1. La tour d1 vise la dame d7, derrière le cavalier d4.",
+    "19...Fd6: le fou revient sur la colonne d, entre la tour et la dame. Si le cavalier bouge, la dame n'est plus attaquée.",
+    "La tour f1 vient sur la colonne e.",
+    "La tour attaque la dame g4. Position difficile, mais encore jouable."
+   ],
+   "rouge": {
+    "0": [
+     [
+      "d1",
+      "d7"
+     ]
+    ]
+   }
+  },
+  {
+   "nom": "Après 20.Cxf5",
+   "avant": 39,
+   "coups": [
+    "Db5",
+    "Ch6+",
+    "Rf6",
+    "Df3+",
+    "Rg7",
+    "Dxa8"
+   ],
+   "notes": [
+    "Position après 20.Cxf5: la dame d7 est attaquée par la tour d1.",
+    "La dame s'échappe.",
+    "Echec du cavalier: le roi doit bouger.",
+    "Le roi avance.",
+    "Echec de la dame.",
+    "Le roi recule.",
+    "La dame prend la tour a8. Environ 10 points d'avance pour les Blancs."
+   ],
+   "rouge": {
+    "0": [
+     [
+      "d1",
+      "d7"
+     ]
+    ]
+   }
+  }
+ ],
+ "remarques": "<div><blockquote>15...Txf6: je n'ai pas voulu ouvrir la défense du roi en décalant mon pion.</blockquote>\n    <p>Bon raisonnement en général: garder les pions devant le roi est souvent le bon choix. Ici, le prix était la fourchette 16.Cxe4 sur la tour f6 et le fou d6. Avec 15...gxf6, la colonne g s'ouvre bien (16.Dg4+ Rh8 17.Dxe6 gagne un pion), mais la tour reste à l'abri en f8. L'écart est petit, environ 0,6 point: le coup est noté imprécis, pas erreur. La vraie perte vient de 16...Fe5, qui laisse la tour en prise. Règle pratique: avant de reprendre, regarder où la pièce qui reprend sera attaquable.</p></div>\n    <div><blockquote>Il y a un moment que j'aurais pris le cavalier d4 avec mon fou.</blockquote>\n    <p>Le cavalier blanc est en d4 depuis 13.Cd4, et le fou e5 l'attaque depuis 16...Fe5. Aux 17e et 18e coups, les Noirs étaient en échec, donc le fou ne pouvait pas le prendre. Au 19e coup, 19...Fxd4 20.Txd4 était possible et meilleur que 19...f5. Le meilleur restait 19...Fd6.</p></div>",
+ "bilan": "<div class=\"cols\">\n      <div class=\"card\"><h3>Points positifs</h3><ul>\n        <li>2...Cc6: e5 protégé en développant.</li>\n        <li>Développement et roque rapides malgré la pièce de moins.</li>\n        <li>11...Fd6 et 12...Dd7: meilleurs coups du moteur, deux attaques sur le cavalier blanc.</li>\n        <li>13...dxe4: un pion récupéré.</li>\n      </ul></div>\n      <div class=\"card\"><h3>A retenir</h3><ul>\n        <li>4...Fe6??: deux pièces côte à côte devant un pion adverse, fourchette 5.d5.</li>\n        <li>10...d5?: le pion d6 protégeait e5.</li>\n        <li>16...Fe5?: contre une fourchette, sauver la pièce la plus chère.</li>\n        <li>19...f5?: la tour d1 visait la dame d7 derrière le cavalier d4.</li>\n      </ul></div>\n    </div>\n    <p class=\"key\"><b>Leçon clé.</b> Avant chaque coup, regarder deux choses: ce que la pièce qui bouge protégeait (d6 pour e5), et si deux de ses pièces peuvent être attaquées ensemble par un seul pion ou cavalier adverse (c6 et e6, f6 et d6).</p>"
+}

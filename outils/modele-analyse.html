@@ -1,0 +1,453 @@
+<title>{{TITRE}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root {
+  --bg: #eceee9;
+  --surface: #f8f9f6;
+  --ink: #1c2220;
+  --muted: #5a6560;
+  --line: #d3d8d1;
+  --accent: #2c6b4d;
+  --t-bon: #2c7a4d;
+  --t-imprecis: #9a6c0c;
+  --t-erreur: #c2551b;
+  --t-gaffe: #bd2430;
+  --t-piege: #6a4c9e;
+  --t-mat: #1c2220;
+  --sq-light: #f0d9b5;
+  --sq-dark: #b58863;
+  --sq-hl: rgba(205, 210, 106, 0.78);
+  --arrow-best: #15781b;
+  --arrow-red: #c0262d;
+  --eval-white: #fbfbf8;
+  --eval-black: #3a403d;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --sq: 44px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141816; --surface: #1c211f; --ink: #e5eae6; --muted: #9ba69f; --line: #2e3532;
+    --accent: #6cc196; --t-bon: #6cc196; --t-imprecis: #e0b84e; --t-erreur: #f0874f;
+    --t-gaffe: #f26b74; --t-piege: #b49af0; --t-mat: #e5eae6;
+    --eval-white: #e9ece8; --eval-black: #2a302d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141816; --surface: #1c211f; --ink: #e5eae6; --muted: #9ba69f; --line: #2e3532;
+  --accent: #6cc196; --t-bon: #6cc196; --t-imprecis: #e0b84e; --t-erreur: #f0874f;
+  --t-gaffe: #f26b74; --t-piege: #b49af0; --t-mat: #e5eae6;
+  --eval-white: #e9ece8; --eval-black: #2a302d;
+  color-scheme: dark;
+}
+@media (max-width: 383px) { :root { --sq: 40px; } }
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.page { max-width: 1060px; margin: 0 auto; display: grid; gap: 28px; }
+
+header { display: grid; gap: 8px; }
+.eyebrow {
+  font-family: var(--font-display); font-weight: 600; font-size: 14px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+}
+h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(40px, 7vw, 60px);
+  line-height: 1; margin: 0; letter-spacing: -0.01em; text-wrap: balance;
+}
+.players { margin: 0; color: var(--muted); max-width: 65ch; }
+.players strong { color: var(--ink); font-weight: 600; }
+.result {
+  display: inline-block; font-family: var(--font-data); font-size: 13px;
+  border: 1px solid var(--ink); padding: 1px 7px; border-radius: 3px; color: var(--ink);
+}
+
+.study { display: grid; grid-template-columns: calc(var(--sq) * 8) minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 820px) { .study { grid-template-columns: minmax(0, 1fr); } .board-col { justify-self: center; } }
+
+.board-col { display: grid; gap: 12px; width: calc(var(--sq) * 8); }
+.board-wrap { position: relative; width: calc(var(--sq) * 8); height: calc(var(--sq) * 8); box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(0,0,0,0.12); }
+.board { display: grid; grid-template-columns: repeat(8, var(--sq)); grid-template-rows: repeat(8, var(--sq)); }
+.sq { position: relative; width: var(--sq); height: var(--sq); }
+.sq.l { background: var(--sq-light); }
+.sq.d { background: var(--sq-dark); }
+.sq.hl::before { content: ""; position: absolute; inset: 0; background: var(--sq-hl); }
+.sq img { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+.coord { position: absolute; font-family: var(--font-body); font-weight: 700; font-size: 10px; line-height: 1; pointer-events: none; }
+.coord.rank { top: 3px; left: 3px; }
+.coord.file { bottom: 2px; right: 3px; }
+.sq.l .coord { color: var(--sq-dark); }
+.sq.d .coord { color: var(--sq-light); }
+.arrows { position: absolute; inset: 0; pointer-events: none; }
+
+.view-note {
+  font-size: 13px; color: var(--muted); min-height: 1.4em; margin: 0;
+}
+.view-note strong { color: var(--accent); }
+
+.nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+button {
+  font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 0; cursor: pointer; display: grid; place-items: center;
+}
+button:hover { border-color: var(--muted); }
+button:focus-visible, .mv:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:disabled { opacity: 0.4; cursor: default; }
+button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.evalbox { display: grid; gap: 6px; }
+.evalhead { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--muted); }
+.evalhead span:last-child { font-family: var(--font-data); color: var(--ink); }
+.evalcap { font-size: 13px; color: var(--muted); }
+.graph { width: 100%; height: 72px; display: block; cursor: pointer; border: 1px solid var(--line); border-radius: 4px; background: var(--eval-black); }
+
+.panel { display: grid; gap: 20px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; display: grid; gap: 10px; }
+.mvhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.mvname { font-family: var(--font-display); font-weight: 700; font-size: 32px; line-height: 1; }
+.tag {
+  font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 3px; border: 1.5px solid currentColor;
+}
+.clair { margin: 0; font-weight: 600; }
+.comment { margin: 0; max-width: 65ch; }
+
+.sheet-title { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.sheet { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.sheet th { text-align: left; font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.sheet td { padding: 1px 2px; border-bottom: 1px solid var(--line); }
+.sheet td.n { font-family: var(--font-data); font-size: 13px; color: var(--muted); width: 2.6em; padding-left: 6px; }
+.mv {
+  font: inherit; font-family: var(--font-data); font-size: 14px; background: none; border: 0; border-radius: 4px;
+  padding: 3px 6px; width: 100%; display: flex; justify-content: flex-start; gap: 4px; text-align: left; color: var(--ink);
+}
+.mv:hover { background: var(--bg); }
+.mv.cur { background: var(--ink); color: var(--surface); }
+.mv .sym { font-weight: 700; }
+.mv.cur .sym { color: inherit !important; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend b { font-family: var(--font-data); }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid; }
+
+.bilan { display: grid; gap: 14px; }
+.bilan h2 { font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.cols .card h3 { font-family: var(--font-display); font-weight: 600; font-size: 20px; margin: 0; }
+.cols .card p, .cols .card ul { margin: 0; }
+.cols .card ul { padding-left: 1.2em; display: grid; gap: 6px; }
+.mono { font-family: var(--font-data); font-size: 0.92em; }
+footer { font-size: 12px; color: var(--muted); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sq img { transition: opacity 120ms ease; }
+}
+.nav button { padding: 12px 0; }
+button svg { width: 22px; height: 22px; }
+.view-note { font-size: 14px; }
+.qa { display: grid; gap: 16px; }
+.qa h2, .vars h2 { font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.1; margin: 0; }
+.qa blockquote { margin: 0; padding-left: 12px; border-left: 3px solid var(--line); color: var(--muted); font-style: italic; }
+.qa p { margin: 6px 0 0; max-width: 65ch; }
+.vars { display: grid; gap: 14px; }
+.vtabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.vtabs button { padding: 10px 14px; font-family: var(--font-data); font-size: 15px; }
+.vtabs button[aria-pressed="true"] { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+.vnav { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.vnav button { padding: 12px 0; }
+.key { border-left: 4px solid var(--accent); padding: 12px 16px; background: var(--surface); border-radius: 0 6px 6px 0; margin: 0; max-width: 70ch; }
+.nav { grid-template-columns: 1fr 1fr 2.2fr 1fr 1fr; }
+.bestbtn { padding: 12px 4px; font-size: 15px; font-weight: 700; background: var(--accent); color: var(--surface); border: 2px solid var(--accent); line-height: 1.1; text-align: center; }
+.bestbtn[aria-pressed="true"] { background: var(--surface); color: var(--accent); }
+.bestline { margin: 0; padding: 10px 12px; border-radius: 6px; background: var(--bg); font-weight: 600; color: var(--accent); }
+.board-col { gap: 8px; }
+@media (max-width: 820px) { .study { gap: 16px; } }
+</style>
+
+<div class="page">
+  <header>
+{{ENTETE}}
+  </header>
+
+  <section class="study" aria-label="Analyse coup par coup">
+    <div class="board-col">
+      <div class="board-wrap">
+        <div class="board" id="board" aria-label="Echiquier"></div>
+        <svg class="arrows" id="arrows" viewBox="0 0 8 8" aria-hidden="true"></svg>
+      </div>
+      <div class="nav">
+        <button id="bFirst" aria-label="Début de la partie"><svg viewBox="0 0 24 24"><path d="M6 5v14M18 6l-7 6 7 6"/></svg></button>
+        <button id="bPrev" aria-label="Coup précédent"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="bestbtn" id="bestBtn" aria-pressed="false"><span id="bestLabel">Meilleur coup</span></button>
+        <button id="bNext" aria-label="Coup suivant"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button id="bLast" aria-label="Fin de la partie"><svg viewBox="0 0 24 24"><path d="M18 5v14M6 6l7 6-7 6"/></svg></button>
+      </div>
+      <p class="view-note" id="viewNote"></p>
+    </div>
+
+    <div class="panel">
+      <div class="card" id="moveCard" aria-live="polite">
+        <div class="mvhead"><span class="mvname" id="mvName"></span><span class="tag" id="mvTag"></span></div>
+        <p class="clair" id="mvClair"></p>
+        <p class="comment" id="mvText"></p>
+        <p class="bestline" id="mvBest"></p>
+      </div>
+      <div class="evalbox">
+        <div class="evalhead"><span>Evaluation du moteur</span><span id="evalTxt"></span></div>
+        <svg class="graph" id="graph" preserveAspectRatio="none" role="img" aria-label="Courbe d'évaluation, cliquer pour aller au coup"></svg>
+        <div class="evalcap">Plus la zone claire monte, plus les Blancs sont mieux. +1 = environ un pion d'avance.</div>
+      </div>
+
+      <div>
+        <p class="sheet-title">Feuille de partie</p>
+        <table class="sheet">
+          <thead><tr><th></th><th>Blancs</th><th>Noirs</th></tr></thead>
+          <tbody id="sheet"></tbody>
+        </table>
+      </div>
+
+      <div class="legend">
+        <span><b style="color:var(--t-bon)">!</b> excellent</span>
+        <span><b style="color:var(--t-imprecis)">?!</b> imprécis</span>
+        <span><b style="color:var(--t-erreur)">?</b> erreur</span>
+        <span><b style="color:var(--t-gaffe)">??</b> gaffe</span>
+        <span><i style="border-color:var(--arrow-best)"></i> meilleur coup</span>
+        <span><i style="border-color:var(--arrow-red)"></i> menace ou ligne</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="qa">
+    <h2>Réponses aux remarques</h2>
+{{REMARQUES}}
+  </section>
+
+  <section class="vars">
+    <h2>Variantes expliquées</h2>
+    <p class="view-note" style="margin:0">Choisir une variante, puis avancer coup par coup.</p>
+    <div class="vtabs" id="vtabs"></div>
+    <div class="study">
+      <div class="board-col">
+        <div class="board-wrap">
+          <div class="board" id="vboard" aria-label="Echiquier des variantes"></div>
+          <svg class="arrows" id="varrows" viewBox="0 0 8 8" aria-hidden="true"></svg>
+        </div>
+        <div class="vnav">
+          <button id="vPrev" aria-label="Coup précédent de la variante"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <button id="vNext" aria-label="Coup suivant de la variante"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="card" aria-live="polite">
+          <div class="mvhead"><span class="mvname" id="vName"></span></div>
+          <p class="comment" id="vNote"></p>
+          <p class="view-note" id="vStep" style="margin:0"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bilan">
+    <h2>Bilan de la partie</h2>
+{{BILAN}}
+  </section>
+
+  <footer>Analyse vérifiée avec Stockfish 17.1. Pièces: jeu cburnett de Colin M.L. Burnett.</footer>
+</div>
+<script>
+const PLIES=__PLIES__;
+const FLIP=__FLIP__;
+const DEPART=__DEPART__;
+const PIECES=__PIECES__;
+const VARS=__VARS__;
+const TAGS = {
+  excellent: { label: "Excellent", sym: "!", color: "var(--t-bon)" },
+  bon: { label: "Bon", sym: "", color: "var(--t-bon)" },
+  imprecis: { label: "Imprécis", sym: "?!", color: "var(--t-imprecis)" },
+  erreur: { label: "Erreur", sym: "?", color: "var(--t-erreur)" },
+  gaffe: { label: "Gaffe", sym: "??", color: "var(--t-gaffe)" }
+};
+const FILES = "abcdefgh";
+let cur = 0, showAlt = false;
+
+function makeBoard(el) {
+  const squares = {};
+  const ranks = FLIP ? [1,2,3,4,5,6,7,8] : [8,7,6,5,4,3,2,1];
+  const files = FLIP ? [7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7];
+  for (const r of ranks) {
+    for (const f of files) {
+      const name = FILES[f] + r;
+      const d = document.createElement("div");
+      d.className = "sq " + ((f + r) % 2 === 1 ? "d" : "l");
+      if (f === files[0]) { const c = document.createElement("span"); c.className = "coord rank"; c.textContent = r; d.appendChild(c); }
+      if (r === ranks[7]) { const c = document.createElement("span"); c.className = "coord file"; c.textContent = FILES[f]; d.appendChild(c); }
+      const img = document.createElement("img"); img.alt = ""; img.hidden = true; d.appendChild(img);
+      el.appendChild(d);
+      squares[name] = { el: d, img };
+    }
+  }
+  return squares;
+}
+function parseFen(fen) {
+  const map = {};
+  fen.split("/").forEach((row, i) => {
+    let f = 0;
+    for (const ch of row) { if (/\d/.test(ch)) f += +ch; else { map[FILES[f] + (8 - i)] = ch; f++; } }
+  });
+  return map;
+}
+function center(sq) { const f = FILES.indexOf(sq[0]), r = +sq[1]; return FLIP ? [7 - f + 0.5, r - 1 + 0.5] : [f + 0.5, 8 - r + 0.5]; }
+function arrow(frm, to, color) {
+  const [x1, y1] = center(frm), [x2, y2] = center(to);
+  const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
+  const ux = dx / len, uy = dy / len;
+  const head = 0.42, w = 0.16;
+  const bx = x2 - ux * head, by = y2 - uy * head, px = -uy, py = ux;
+  const sx = x1 + ux * 0.2, sy = y1 + uy * 0.2;
+  return `<g opacity="0.82"><line x1="${sx}" y1="${sy}" x2="${bx}" y2="${by}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>` +
+    `<polygon points="${x2},${y2} ${bx + px * 0.26},${by + py * 0.26} ${bx - px * 0.26},${by - py * 0.26}" fill="${color}"/></g>`;
+}
+function colors() {
+  const cs = getComputedStyle(document.documentElement);
+  return { best: cs.getPropertyValue("--arrow-best").trim(), red: cs.getPropertyValue("--arrow-red").trim() };
+}
+function paint(squares, arrowsEl, fen, hl, svg) {
+  const map = parseFen(fen);
+  for (const name in squares) {
+    const { el, img } = squares[name];
+    const pc = map[name];
+    if (pc) { img.src = PIECES[pc]; img.hidden = false; } else { img.hidden = true; img.removeAttribute("src"); }
+    el.classList.toggle("hl", hl.includes(name));
+  }
+  arrowsEl.innerHTML = svg;
+}
+
+const mainSq = makeBoard(document.getElementById("board"));
+const arrowsEl = document.getElementById("arrows");
+function moveLabel(p) { return p.num + (p.side === "B" ? "." : "...") + p.san; }
+function bestLabel(p) { return p.num + (p.side === "B" ? "." : "...") + p.best.san; }
+function fmtEval(p) { const v = p.eval; return (v > 0 ? "+" : v < 0 ? "-" : "") + Math.abs(v).toFixed(1).replace(".", ","); }
+
+function renderBoard() {
+  const p = PLIES[cur];
+  const useAlt = showAlt && p.best;
+  const c = colors();
+  let svg = "";
+  if (useAlt) svg = arrow(p.best.frm, p.best.to, c.best);
+  else if (cur > 0) for (const a of p.arrows) svg += arrow(a.frm, a.to, c.red);
+  paint(mainSq, arrowsEl, useAlt ? p.before : p.fen, (!useAlt && cur > 0) ? [p.frm, p.to] : [], svg);
+  const note = document.getElementById("viewNote");
+  if (useAlt) note.innerHTML = `Position <strong>avant</strong> ${moveLabel(p)}. Flèche verte: meilleur coup, <strong>${bestLabel(p)}</strong>${p.best.played ? " (c'est le coup joué)" : ""}.`;
+  else if (cur === 0) note.textContent = "Position de départ. Les " + (FLIP ? "Noirs" : "Blancs") + " sont en bas. Flèches du clavier pour avancer.";
+  else note.textContent = "Position après " + moveLabel(p) + ".";
+}
+function renderCard() {
+  const p = PLIES[cur];
+  const name = document.getElementById("mvName"), tag = document.getElementById("mvTag");
+  const clair = document.getElementById("mvClair"), text = document.getElementById("mvText");
+  const bestLine = document.getElementById("mvBest");
+  if (cur === 0) {
+    name.textContent = "Départ"; tag.hidden = true;
+    clair.textContent = DEPART;
+    text.textContent = "Chaque coup est commenté et évalué. Le bouton vert sous l'échiquier montre, pour chaque coup, la position juste avant avec le meilleur coup en flèche verte.";
+    bestLine.hidden = true; return;
+  }
+  const t = TAGS[p.tag];
+  name.textContent = moveLabel(p) + (t.sym ? " " + t.sym : "");
+  tag.hidden = false; tag.textContent = t.label; tag.style.color = t.color;
+  clair.textContent = p.clair; text.textContent = p.text;
+  bestLine.hidden = false;
+  bestLine.textContent = p.best.played ? "Meilleur coup selon le moteur: " + bestLabel(p) + ", c'est le coup joué." : "Meilleur coup selon le moteur: " + bestLabel(p) + ".";
+}
+function renderBestBtn() {
+  const btn = document.getElementById("bestBtn");
+  btn.disabled = cur === 0;
+  btn.setAttribute("aria-pressed", showAlt ? "true" : "false");
+  document.getElementById("bestLabel").textContent = showAlt && cur > 0 ? "Coup joué" : "Meilleur coup";
+}
+function renderSheet() {
+  let html = "";
+  for (let i = 1; i < PLIES.length; i += 2) {
+    const w = PLIES[i], b = PLIES[i + 1];
+    const cell = (p, idx) => {
+      if (!p) return "<td></td>";
+      const t = TAGS[p.tag];
+      return `<td><button class="mv${idx === cur ? " cur" : ""}" data-i="${idx}">${p.san}${t.sym ? `<span class="sym" style="color:${t.color}">${t.sym}</span>` : ""}</button></td>`;
+    };
+    html += `<tr><td class="n">${w.num}.</td>${cell(w, i)}${cell(b, i + 1)}</tr>`;
+  }
+  document.getElementById("sheet").innerHTML = html;
+}
+const graph = document.getElementById("graph");
+const CLAMP = 10;
+function gx(i) { return (i / (PLIES.length - 1)) * 100; }
+function gy(v) { const c = Math.max(-CLAMP, Math.min(CLAMP, v)); return 30 - (c / CLAMP) * 28; }
+function renderGraph() {
+  const pts = PLIES.map((p, i) => `${gx(i)},${gy(p.eval)}`).join(" ");
+  const cs = getComputedStyle(document.documentElement);
+  graph.setAttribute("viewBox", "0 0 100 60");
+  let s = `<polygon points="0,60 ${pts} 100,60" fill="${cs.getPropertyValue("--eval-white").trim()}"/>`;
+  s += `<line x1="0" y1="30" x2="100" y2="30" stroke="${cs.getPropertyValue("--muted").trim()}" stroke-width="1" vector-effect="non-scaling-stroke" stroke-dasharray="3 3"/>`;
+  s += `<line x1="${gx(cur)}" y1="0" x2="${gx(cur)}" y2="60" style="stroke: var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  graph.innerHTML = s;
+  document.getElementById("evalTxt").textContent = fmtEval(PLIES[cur]);
+}
+function updateNav() {
+  document.getElementById("bFirst").disabled = cur === 0;
+  document.getElementById("bPrev").disabled = cur === 0;
+  document.getElementById("bNext").disabled = cur === PLIES.length - 1;
+  document.getElementById("bLast").disabled = cur === PLIES.length - 1;
+}
+function render() { renderBoard(); renderCard(); renderBestBtn(); renderSheet(); renderGraph(); updateNav(); }
+function go(i) { cur = Math.max(0, Math.min(PLIES.length - 1, i)); showAlt = false; render(); }
+document.getElementById("bFirst").onclick = () => go(0);
+document.getElementById("bPrev").onclick = () => go(cur - 1);
+document.getElementById("bNext").onclick = () => go(cur + 1);
+document.getElementById("bLast").onclick = () => go(PLIES.length - 1);
+document.getElementById("bestBtn").onclick = () => { if (cur === 0) return; showAlt = !showAlt; renderBoard(); renderBestBtn(); };
+document.getElementById("sheet").addEventListener("click", e => { const b = e.target.closest(".mv"); if (b) go(+b.dataset.i); });
+graph.addEventListener("click", e => { const r = graph.getBoundingClientRect(); go(Math.round(((e.clientX - r.left) / r.width) * (PLIES.length - 1))); });
+document.addEventListener("keydown", e => {
+  if (e.target.closest("input, textarea")) return;
+  if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
+});
+
+const vSq = makeBoard(document.getElementById("vboard"));
+const vArrows = document.getElementById("varrows");
+let vi = 0, vs = 0;
+const vt = document.getElementById("vtabs");
+VARS.forEach((v, i) => vt.insertAdjacentHTML("beforeend", `<button data-v="${i}" aria-pressed="false">${v.name}</button>`));
+vt.addEventListener("click", e => { const b = e.target.closest("button"); if (b) { vi = +b.dataset.v; vs = 0; vdraw(); } });
+function vdraw() {
+  const st = VARS[vi].steps[vs], c = colors();
+  let svg = ""; st.red.forEach(r => svg += arrow(r[0], r[1], c.red));
+  paint(vSq, vArrows, st.fen, st.hl, svg);
+  document.getElementById("vName").textContent = st.lab;
+  document.getElementById("vNote").textContent = st.note;
+  document.getElementById("vStep").textContent = "Variante " + VARS[vi].name + ", étape " + (vs + 1) + " sur " + VARS[vi].steps.length;
+  vt.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.v === vi ? "true" : "false"));
+  document.getElementById("vPrev").disabled = vs === 0;
+  document.getElementById("vNext").disabled = vs === VARS[vi].steps.length - 1;
+}
+document.getElementById("vPrev").onclick = () => { if (vs > 0) { vs--; vdraw(); } };
+document.getElementById("vNext").onclick = () => { if (vs < VARS[vi].steps.length - 1) { vs++; vdraw(); } };
+
+function all() { render(); vdraw(); }
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", all);
+new MutationObserver(all).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+all();
+</script>
