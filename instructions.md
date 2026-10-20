@@ -7,7 +7,7 @@ Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Clau
 ## Organisation des documents
 | Document | Contenu | Quand le lire |
 |---|---|---|
-| instructions.md | Ce fichier | Au début de chaque conversation |
+| instructions.md (claude/instructions.md dans un projet claude.ai) | Ce fichier | Au début de chaque conversation |
 | regles/partie.md | Déroulement d'une partie jouée avec Claude | Avant de jouer une partie |
 | regles/mode-vocal.md | Règles propres au mode vocal | Quand le joueur dicte ses coups |
 | regles/analyse.md | Exigences pour l'analyse d'une partie | Avant d'analyser une partie |
@@ -43,7 +43,7 @@ Si les documents joueur/ n'existent pas encore:
 Sur demande du joueur ("Mets à jour les règles depuis le dépôt"):
 1. Cloner le dépôt indiqué par le joueur (son fork, ou le dépôt d'origine).
 2. Comparer avec les documents du projet et résumer au joueur ce qui change.
-3. Réécrire dans le projet instructions.md et les documents regles/, outils/ et modeles/, au même chemin. Supprimer ceux qui n'existent plus dans le dépôt.
+3. Réécrire dans le projet instructions.md (sous claude/instructions.md) et les documents regles/, outils/ et modeles/, au même chemin. Supprimer ceux qui n'existent plus dans le dépôt.
 4. Ne jamais toucher aux documents joueur/. Si un modèle a changé (nouvelle section), proposer d'ajouter la section correspondante dans la fiche du joueur.
 
 ## Contribution au dépôt

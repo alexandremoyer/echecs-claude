@@ -29,8 +29,9 @@ Dans ces trois cas, Claude clone le dépôt le temps de la conversation. Le clon
 1. Dans claude.ai, créer un projet (par exemple "Echecs").
 2. Dans les instructions du projet, coller:
    ```
-   Lire instructions.md au début de chaque conversation et suivre ses règles.
+   Lire claude/instructions.md au début de chaque conversation et suivre ses règles.
    ```
+   Un document enregistré à la racine du projet est automatiquement rangé dans le dossier claude/: instructions.md devient donc claude/instructions.md, les autres documents gardent leur chemin (regles/..., outils/..., modeles/...).
 3. Ouvrir une conversation dans le projet et importer les règles, au choix:
    - **avec GitHub relié à claude.ai** (réglages, rubrique Connecteurs): demander "Clone le dépôt alexandremoyer/echecs-claude et enregistre chaque fichier comme document du projet, au même chemin, sauf README.md, CLAUDE.md et .gitignore". Pour pouvoir contribuer ensuite, forker d'abord le dépôt et donner le nom de son fork à la place.
    - **sans GitHub**: télécharger le dépôt (bouton "Code" puis "Download ZIP"), le joindre et demander "Enregistre chaque fichier de ce ZIP comme document du projet, au même chemin, sauf README.md, CLAUDE.md et .gitignore".
@@ -45,7 +46,7 @@ Dans ces trois cas, Claude clone le dépôt le temps de la conversation. Le clon
 
 ## Mettre à jour les règles
 - **Avec GitHub**: synchroniser son fork si on en a un ("Sync fork"), puis demander "Mets à jour les règles depuis le dépôt".
-- **Sans GitHub**: télécharger le nouveau ZIP et demander à Claude de réenregistrer les documents instructions.md, regles/, outils/ et modeles/.
+- **Sans GitHub**: télécharger le nouveau ZIP et demander à Claude de réenregistrer les documents claude/instructions.md, regles/, outils/ et modeles/.
 
 Dans les deux cas, les fiches joueur/ ne sont pas touchées.
 
