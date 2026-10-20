@@ -2,7 +2,7 @@
 
 Ce projet sert à progresser aux échecs avec Claude: parties jouées dans la conversation, analyses de parties jouées en ligne, suivi de la progression du joueur.
 
-Les "documents" cités ici sont, selon l'installation, les documents d'un projet claude.ai ou les fichiers d'un clone du dépôt.
+Les "documents" cités ici sont, selon l'installation, les documents d'un projet claude.ai ou les fichiers d'un clone du dépôt. Quand la conversation est rattachée à un projet claude.ai, les fiches joueur/ sont toujours des documents du projet, même si les règles et les outils sont lus dans un clone: l'environnement de travail est effacé entre deux conversations, pas le projet.
 
 ## Organisation des documents
 | Document | Contenu | Quand le lire |

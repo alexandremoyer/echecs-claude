@@ -19,11 +19,27 @@ joueur/              fiches personnelles (non versionné)
 Les règles et les outils sont communs. Les données personnelles vivent dans joueur/, qui n'est pas versionné: chacun garde ses parties pour lui.
 
 ## Installation
-Deux façons d'installer:
-- **Projet claude.ai**: le plus simple, sans compte GitHub. Les fiches du joueur vivent dans le projet.
-- **Fork du dépôt**: pratique pour proposer des modifications par pull request (voir plus bas).
+Trois façons d'installer:
 
-### Projet claude.ai
+| Installation | Règles et outils | Fiches du joueur | Contribuer par pull request |
+|---|---|---|---|
+| A. Projet claude.ai avec clone (conseillée) | Clone du fork, à jour à chaque conversation | Documents du projet | Oui |
+| B. Projet claude.ai sans GitHub | Documents du projet, recopiés à la main | Documents du projet | Non |
+| C. Claude Code sur sa machine | Clone du fork | Dossier joueur/ du clone | Oui |
+
+### A. Projet claude.ai avec clone du dépôt
+Demande un compte GitHub relié à claude.ai (réglages, rubrique Connecteurs), avec accès au fork.
+1. Forker le dépôt sur GitHub. Le fork se met à jour depuis ce dépôt avec le bouton "Sync fork".
+2. Dans claude.ai, créer un projet (par exemple "Echecs").
+3. Dans les instructions du projet, coller, en remplaçant le nom du fork:
+   ```
+   Au début de chaque conversation, cloner le dépôt GitHub mon-pseudo/echecs-claude, puis lire instructions.md et suivre ses règles. Les fiches joueur/ sont des documents du projet, pas des fichiers du clone.
+   ```
+4. Ouvrir une conversation dans le projet et écrire "Initialise mon profil". Claude clone le fork, crée les fiches joueur/ dans les documents du projet et pose quelques questions (niveau, classement, plateforme, notation, objectifs).
+
+Chaque conversation repart d'un environnement vierge: Claude reclone le dépôt au début, ce qui prend quelques secondes. Les fiches du joueur, elles, restent dans le projet.
+
+### B. Projet claude.ai sans GitHub
 1. Dans claude.ai, créer un projet (par exemple "Echecs").
 2. Dans les instructions du projet, coller:
    ```
@@ -35,16 +51,12 @@ Deux façons d'installer:
    Enregistre chaque fichier de ce ZIP comme document du projet, au même chemin (instructions.md, regles/..., outils/..., modeles/...), sans README.md, CLAUDE.md ni .gitignore.
    ```
    Les fichiers doivent être des documents du projet écrits par Claude, et non de simples fichiers déposés dans les connaissances du projet: c'est ce qui permet à Claude de créer puis de mettre à jour les fiches du joueur.
-5. Dans une nouvelle conversation, écrire "Initialise mon profil". Claude crée les fiches joueur/ et pose quelques questions (niveau, classement, plateforme, notation, objectifs).
+5. Dans une nouvelle conversation, écrire "Initialise mon profil". Claude crée les fiches joueur/ et pose quelques questions.
 
-### Fork du dépôt
-1. Forker le dépôt sur GitHub.
-2. Faire cloner le fork par Claude: avec Claude Code sur sa machine, ou dans une session Claude reliée à son compte GitHub. Le fichier CLAUDE.md, lu automatiquement par Claude Code, renvoie vers instructions.md.
-3. Ecrire "Initialise mon profil": Claude crée le dossier joueur/ dans le clone.
-
-Où garder les fiches du joueur:
-- **Claude Code sur sa machine**: le dossier joueur/ reste sur le disque, exclu des commits par le .gitignore.
-- **Session Claude dans le cloud**: l'environnement est effacé après inactivité, et joueur/ disparaîtrait avec lui. Dans ce cas, garder les fiches dans un projet claude.ai (installation ci-dessus) et n'utiliser le fork que pour contribuer.
+### C. Claude Code sur sa machine
+1. Forker le dépôt et le cloner sur sa machine.
+2. Lancer Claude Code dans le clone: le fichier CLAUDE.md, lu automatiquement, renvoie vers instructions.md.
+3. Ecrire "Initialise mon profil": Claude crée le dossier joueur/ dans le clone, exclu des commits par le .gitignore.
 
 ## Utilisation
 - **Jouer une partie**: ouvrir une nouvelle conversation dans le projet pour chaque partie. Claude demande la couleur (ou un tirage au sort), l'ouverture éventuelle et le thème éventuel.
@@ -52,13 +64,16 @@ Où garder les fiches du joueur:
 - **Suivi**: après chaque partie ou analyse, Claude met à jour les fiches joueur/. On peut les relire et les corriger à tout moment.
 
 ## Mettre à jour les règles
-Télécharger la nouvelle version du dépôt et demander à Claude de réenregistrer les documents regles/, outils/, modeles/ et instructions.md. Les fiches joueur/ ne sont pas touchées.
+- **Installations A et C**: synchroniser le fork sur GitHub ("Sync fork"). Avec A, la conversation suivante utilise directement la nouvelle version; avec C, faire un `git pull` dans le clone.
+- **Installation B**: télécharger la nouvelle version du dépôt et demander à Claude de réenregistrer les documents regles/, outils/, modeles/ et instructions.md.
+
+Dans tous les cas, les fiches joueur/ ne sont pas touchées.
 
 ## Contribuer
 Les améliorations des règles et des outils sont les bienvenues, par issue ou pull request.
 
 Pendant les parties et les analyses, Claude ne modifie pas les documents communs: s'il repère une règle à améliorer, il la propose. Pour la soumettre:
-1. Depuis un clone de son fork, demander explicitement à Claude d'appliquer la modification, par exemple "Ajoute cette règle dans regles/partie.md et prépare une pull request".
+1. Dans une conversation qui a cloné son fork (installation A ou C), demander explicitement à Claude d'appliquer la modification, par exemple "Ajoute cette règle dans regles/partie.md et prépare une pull request".
 2. Claude crée une branche, fait le commit, la pousse sur le fork et ouvre la pull request vers ce dépôt.
 3. Vérifier avant l'envoi que la modification ne contient aucune donnée personnelle (parties, pseudo, classement): ces informations restent dans joueur/.
 
