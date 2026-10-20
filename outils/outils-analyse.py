@@ -7,54 +7,45 @@ Usage:
   python3 outils-analyse.py build partie.json analyse.json modele-analyse.html sortie.html
 Voir outils/rendu-analyse.md. Si le modèle contient __PIECES__, les pièces cburnett sont
 générées depuis chess.svg (python-chess) au lieu d'être recopiées en base64.
+Après un coup qui mate, l'évaluation vaut +100 ou -100 sans appel au moteur; après une
+nulle (pat, répétition), elle vaut 0. La traduction en clair signale les promotions.
 """
 import base64, json, os, re, subprocess, sys
-
 HOME = os.path.expanduser("~")
 SF = os.path.join(HOME, "sf", "stockfish", "stockfish-ubuntu-x86-64-avx2")
 FR2EN = {"R": "K", "D": "Q", "T": "R", "F": "B", "C": "N"}
 EN2FR = {"K": "R", "Q": "D", "R": "T", "B": "F", "N": "C"}
-
-
 def setup():
     d = os.path.join(HOME, "sf"); os.makedirs(d, exist_ok=True)
     subprocess.run(f"pip download chess==1.10.0 --no-deps -d {d} -q && pip install --break-system-packages -q {d}/chess-1.10.0-py3-none-any.whl", shell=True, check=True)
     if not os.path.exists(SF):
         subprocess.run(f"cd {d} && curl -sSL -o sf.tar https://github.com/official-stockfish/Stockfish/releases/download/sf_17.1/stockfish-ubuntu-x86-64-avx2.tar && tar xf sf.tar && chmod +x {SF}", shell=True, check=True)
     print("ok", SF)
-
-
 def fr2en(san):
     san = re.sub(r"=([DTFC])", lambda m: "=" + FR2EN[m.group(1)], san)
     return FR2EN[san[0]] + san[1:] if san[0] in FR2EN else san
-
-
 def en2fr(san):
     san = re.sub(r"=([QRBN])", lambda m: "=" + EN2FR[m.group(1)], san)
     return EN2FR[san[0]] + san[1:] if san[0] in EN2FR else san
-
-
 def moves_of(txt):
     toks = [t for t in re.sub(r"\d+\.(\.\.)?", " ", txt).split() if t not in ("1-0", "0-1", "1/2-1/2", "*")]
     return [t.rstrip("!?") for t in toks]
-
-
 def analyse(pj, out):
     import chess, chess.engine
     p = json.load(open(pj)); b = chess.Board(); eng = chess.engine.SimpleEngine.popen_uci(SF)
     res = []
-    def sc(x):
-        return x["score"].white().score(mate_score=10000)
+    def sc(x): return x["score"].white().score(mate_score=10000)
+    D = int(os.environ.get("DEPTH","20"))
     for k, m in enumerate(moves_of(p["coups"])):
-        info = eng.analyse(b, chess.engine.Limit(depth=int(os.environ.get("DEPTH","20"))), multipv=3)
+        info = eng.analyse(b, chess.engine.Limit(depth=D), multipv=3)
         best = [[en2fr(b.san(x["pv"][0])), sc(x) / 100, " ".join(en2fr(s) for s in b.variation_san(x["pv"][:8]).split())] for x in info]
         mv = b.parse_san(fr2en(m)); fen = b.fen(); b.push(mv)
-        after = sc(eng.analyse(b, chess.engine.Limit(depth=int(os.environ.get("DEPTH","20")))))
+        if b.is_checkmate(): after = 10000 if b.turn == chess.BLACK else -10000
+        elif b.is_game_over(): after = 0
+        else: after = sc(eng.analyse(b, chess.engine.Limit(depth=D)))
         res.append(dict(ply=k, san=m, fen_before=fen, after=after / 100, best=best))
-        print(k, m, "après", after / 100, "| meilleurs:", best)
+        print(k, m, "après", after / 100, "| meilleurs:", best, flush=True)
     eng.quit(); json.dump(res, open(out, "w"), ensure_ascii=False, indent=0)
-
-
 def clair(b, mv):
     import chess
     NAME = {chess.PAWN: ("pion", "m"), chess.KNIGHT: ("cavalier", "m"), chess.BISHOP: ("fou", "m"),
@@ -73,11 +64,11 @@ def clair(b, mv):
             t = f"{art} {n} {col} {chess.square_name(mv.from_square)} prend {'la' if cg == 'f' else 'le'} {cn} en {chess.square_name(mv.to_square)}"
     else:
         t = f"{art} {n} {col} {chess.square_name(mv.from_square)} va en {chess.square_name(mv.to_square)}"
+    if mv.promotion:
+        t += ", promotion en " + NAME[mv.promotion][0]
     if s.endswith("#"): t += ", échec et mat"
     elif s.endswith("+"): t += ", avec échec"
     return t + "."
-
-
 def pieces_js():
     import chess.svg
     out = {}
@@ -86,8 +77,6 @@ def pieces_js():
         svg = '<svg xmlns="http://www.w3.org/2000/svg" width="45" height="45">' + g + "</svg>"
         out[sym] = "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
     return json.dumps(out)
-
-
 def build(pj, aj, tpl, out):
     import chess
     p = json.load(open(pj)); an = json.load(open(aj)); mv_list = moves_of(p["coups"])
@@ -117,11 +106,8 @@ def build(pj, aj, tpl, out):
         h = h.replace(k, val)
     h = h.replace("__PLIES__", json.dumps(PL, ensure_ascii=False)).replace("__VARS__", json.dumps(V, ensure_ascii=False))
     h = h.replace("__FLIP__", "true" if p["flip"] else "false").replace("__DEPART__", json.dumps(p["depart"], ensure_ascii=False))
-    if "__PIECES__" in h:
-        h = h.replace("__PIECES__", pieces_js())
+    if "__PIECES__" in h: h = h.replace("__PIECES__", pieces_js())
     open(out, "w").write(h); print("ok", out, len(h))
-
-
 if __name__ == "__main__":
     a = sys.argv[1:]
     {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "build": lambda: build(*a[1:5])}[a[0]]()
