@@ -2,6 +2,8 @@
 
 Ce projet sert à progresser aux échecs avec Claude: parties jouées dans la conversation, analyses de parties jouées en ligne, suivi de la progression du joueur.
 
+Les "documents" cités ici sont, selon l'installation, les documents d'un projet claude.ai ou les fichiers d'un clone du dépôt.
+
 ## Organisation des documents
 | Document | Contenu | Quand le lire |
 |---|---|---|
@@ -19,8 +21,9 @@ Ce projet sert à progresser aux échecs avec Claude: parties jouées dans la co
 | joueur/historique.md | Parties jouées et leurs leçons | Pour une analyse, un bilan, ou une question sur une partie passée |
 
 ## Règles générales
-- Les documents regles/, outils/ et modeles/ sont communs à tous les joueurs et ne sont jamais modifiés par Claude. Si une règle paraît à améliorer, Claude le propose au joueur, qui la reportera dans le dépôt partagé.
-- Seuls les documents joueur/ sont mis à jour par Claude, en réécrivant le document complet.
+- Les documents instructions.md, regles/, outils/ et modeles/ sont communs à tous les joueurs. Pendant les parties et les analyses, Claude ne les modifie pas: si une règle paraît à améliorer, il le propose au joueur.
+- Claude ne modifie ces documents communs que sur demande explicite du joueur, pour une contribution au dépôt partagé (voir le README, section "Contribuer").
+- Les documents joueur/ sont mis à jour par Claude, en réécrivant le document complet. Ils ne sont jamais ajoutés au dépôt.
 - Toutes les réponses suivent la langue du joueur. Les documents sont rédigés en français.
 
 ## Initialisation (première conversation)
