@@ -2,7 +2,7 @@
 
 Ce projet sert à progresser aux échecs avec Claude: parties jouées dans la conversation, analyses de parties jouées en ligne, suivi de la progression du joueur.
 
-Les "documents" cités ici sont, selon l'installation, les documents d'un projet claude.ai ou les fichiers d'un clone du dépôt. Quand la conversation est rattachée à un projet claude.ai, les fiches joueur/ sont toujours des documents du projet, même si les règles et les outils sont lus dans un clone: l'environnement de travail est effacé entre deux conversations, pas le projet.
+Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Claude Code, les fichiers d'un clone local du dépôt). Au quotidien, tout est lu dans les documents du projet: aucun clone n'est nécessaire. Le dépôt GitHub ne sert que pour mettre à jour les règles ou proposer une modification (voir plus bas).
 
 ## Organisation des documents
 | Document | Contenu | Quand le lire |
@@ -22,7 +22,7 @@ Les "documents" cités ici sont, selon l'installation, les documents d'un projet
 
 ## Règles générales
 - Les documents instructions.md, regles/, outils/ et modeles/ sont communs à tous les joueurs. Pendant les parties et les analyses, Claude ne les modifie pas: si une règle paraît à améliorer, il le propose au joueur.
-- Claude ne modifie ces documents communs que sur demande explicite du joueur, pour une contribution au dépôt partagé (voir le README, section "Contribuer").
+- Claude ne modifie ces documents communs que sur demande explicite du joueur: mise à jour depuis le dépôt, ou contribution.
 - Les documents joueur/ sont mis à jour par Claude, en réécrivant le document complet. Ils ne sont jamais ajoutés au dépôt.
 - Toutes les réponses suivent la langue du joueur. Les documents sont rédigés en français.
 
@@ -38,3 +38,19 @@ Si les documents joueur/ n'existent pas encore:
 - joueur/progression.md: points faibles et forts avec le numéro de la partie et le coup, repères nouveaux, bilan du thème en cours.
 - joueur/profil.md: niveau ou classement s'ils ont changé, habitudes et préférences exprimées par le joueur.
 - Quand un même point faible revient dans plusieurs parties, le signaler au joueur et proposer d'en faire le thème de travail en cours.
+
+## Mise à jour des règles depuis le dépôt
+Sur demande du joueur ("Mets à jour les règles depuis le dépôt"):
+1. Cloner le dépôt indiqué par le joueur (son fork, ou le dépôt d'origine).
+2. Comparer avec les documents du projet et résumer au joueur ce qui change.
+3. Réécrire dans le projet instructions.md et les documents regles/, outils/ et modeles/, au même chemin. Supprimer ceux qui n'existent plus dans le dépôt.
+4. Ne jamais toucher aux documents joueur/. Si un modèle a changé (nouvelle section), proposer d'ajouter la section correspondante dans la fiche du joueur.
+
+## Contribution au dépôt
+Sur demande explicite du joueur ("Propose cette modification au dépôt"):
+1. Cloner le fork du joueur et le mettre à jour depuis le dépôt d'origine.
+2. Créer une branche au nom explicite. Ne jamais commiter sur main.
+3. Appliquer la modification, montrer le résultat au joueur, puis faire le commit.
+4. Vérifier que le commit ne contient aucune donnée personnelle (parties, pseudo, classement, fichiers d'analyse).
+5. Pousser la branche et ouvrir la pull request vers le dépôt d'origine, avec une description claire de la modification et de sa raison.
+6. Mettre à jour le document correspondant dans le projet.

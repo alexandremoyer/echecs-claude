@@ -8,7 +8,7 @@ On reprend exactement ce rendu pour chaque analyse écrite. Le document outils/e
 - outils/exemple-partie.json: exemple complet de données, à copier comme point de départ.
 
 ## Etapes
-1. Réunir dans un dossier de travail, hors du clone éventuel, les trois fichiers outils/modele-analyse.html, outils/outils-analyse.py et outils/exemple-partie.json (même nom, sans "outils/"): copiés depuis le clone du dépôt s'il existe, sinon lus dans les documents du projet puis écrits sur le disque. Les fichiers partie.json, analyse.json et page.html d'une analyse ne doivent jamais se retrouver dans le dépôt.
+1. Lire les trois documents outils/modele-analyse.html, outils/outils-analyse.py et outils/exemple-partie.json et les écrire dans un dossier de travail (même nom, sans "outils/"). Avec Claude Code dans un clone local, travailler dans un dossier hors du clone: les fichiers partie.json, analyse.json et page.html d'une analyse ne doivent jamais se retrouver dans le dépôt.
 2. `python3 outils-analyse.py setup`: installe python-chess (si pip normal échoue: passage par la wheel chess-1.10.0) et Stockfish 17.1 dans ~/sf (téléchargé depuis GitHub).
 3. Ecrire partie.json avec au minimum "coups" (notation française, ex. "1.e4 e5 2.Cf3 ..."; un PGN en notation anglaise est à traduire: K R, Q D, R T, B F, N C).
 4. `python3 outils-analyse.py analyse partie.json analyse.json`: pour chaque demi-coup, éval après le coup et 3 meilleurs coups avant, avec la suite. Relire ces lignes pour rédiger: étiquette et commentaire de chaque coup, variantes, remarques, bilan. Vérifier au moteur toute affirmation (multipv avec root_moves pour comparer un coup précis). Pour les vérifications, lancer python avec -u et un timeout; ne pas analyser une position déjà mate (le script plante).
