@@ -14,8 +14,8 @@
 ### Avec les Noirs contre les autres premiers coups
 (vide pour l'instant)
 
-Format d'une entrée: nom de l'ouverture et code ECO si connu, numéro de la partie, coups joués, ce qui était bon, ce qui était mieux. Exemple:
-- Partie N: contre 2.Cf3, 2...Cc6 (meilleur coup), puis 3...d6?! (solide mais passif, mieux 3...Cf6 ou 3...Fc5).
+Format d'une entrée: le répertoire, pas un compte rendu de chaque partie. Coup adverse, réponse conseillée, et au besoin un piège à connaître. Le détail des parties reste dans joueur/parties/. Exemple:
+- Contre 2.Cf3: 2...Cc6. Contre l'Italienne (3.Fc4): 3...Fc5 ou 3...Cf6.
 
 ## Vues (expliquées en théorie, jamais jouées)
 (vide pour l'instant)

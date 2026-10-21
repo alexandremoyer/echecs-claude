@@ -34,10 +34,11 @@ Si les documents joueur/ n'existent pas encore:
 3. Ne rien inventer: une information inconnue reste vide et se complète au fil des parties.
 
 ## Mise à jour après une partie ou une analyse
+Principe: les fiches profil.md, progression.md et ouvertures.md restent courtes (une page chacune au plus) et ne gardent que l'essentiel. Le détail d'une partie (coups, erreurs, variantes, chiffres) va uniquement dans sa fiche joueur/parties/partie-NNN.md.
 - joueur/parties/partie-NNN.md: nouvelle fiche à partir de modeles/partie.md (coups, leçons, remarques du joueur, points positifs). Numéro sur trois chiffres, à la suite du dernier de l'index.
 - joueur/historique.md: nouvelle ligne dans l'index, avec 5 à 8 mots-clés choisis pour retrouver la partie plus tard (ouverture, thèmes tactiques, erreurs et réussites marquantes). Si une partie déjà indexée est complétée, mettre aussi sa ligne à jour.
-- joueur/ouvertures.md: ouverture jouée, ce qui était bon, ce qui était mieux. Bien distinguer ce qui a été joué en partie (travaillé) de ce qui a seulement été expliqué (vu).
-- joueur/progression.md: points faibles et forts avec le numéro de la partie et le coup, repères nouveaux, bilan du thème en cours.
+- joueur/progression.md: mise à jour seulement si un point récurrent change (nouveau point faible qui revient, point corrigé, nouveau point fort net, thème terminé ou nouveau thème). Un ou deux exemples par point au plus, en remplaçant les plus anciens.
+- joueur/ouvertures.md: mise à jour seulement si le répertoire change (nouvelle ouverture rencontrée, nouveau coup conseillé, nouveau piège important). Pas de compte rendu partie par partie.
 - joueur/profil.md: niveau ou classement s'ils ont changé, habitudes et préférences exprimées par le joueur.
 - Quand un même point faible revient dans plusieurs parties, le signaler au joueur et proposer d'en faire le thème de travail en cours.
 

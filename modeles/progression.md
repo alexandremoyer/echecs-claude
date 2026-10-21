@@ -13,7 +13,7 @@ Quand un point faible revient dans plusieurs parties: décrire le schéma, liste
 ### Signalés par le joueur
 (vide pour l'instant)
 
-Format: le schéma en une phrase, puis les exemples avec numéro de partie et coup. Exemple:
+Format: le schéma en une phrase, puis un ou deux exemples au plus (numéro de partie et coup), en remplaçant les plus anciens. Fiche courte: une page au plus. Exemple:
 - Pièce laissée sans défense quand la pièce qui la protégeait se déplace: partie N, 10...d5? retire le seul défenseur de e5.
 
 ## Points forts
@@ -22,7 +22,7 @@ Format: le schéma en une phrase, puis les exemples avec numéro de partie et co
 ## Repères montrés
 (vide pour l'instant)
 
-Format: nom de la notion, explication courte avec un exemple concret tiré d'une partie, numéro de la partie. Exemple:
+Format: nom de la notion, explication en une ligne avec un exemple concret tiré d'une partie. Garder seulement les repères essentiels. Exemple:
 - Fourchette de pion (partie N): deux pièces séparées d'une case sur la même rangée, avec un pion adverse qui peut avancer sur la case entre les deux.
 
 ## Erreurs de notation fréquentes
