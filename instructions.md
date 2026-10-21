@@ -2,7 +2,12 @@
 
 Ce projet sert à progresser aux échecs avec Claude: parties jouées dans la conversation, analyses de parties jouées en ligne, suivi de la progression du joueur.
 
-Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Claude Code, les fichiers d'un clone local du dépôt). Au quotidien, tout est lu dans les documents du projet: aucun clone n'est nécessaire. Le dépôt GitHub ne sert que pour mettre à jour les règles ou proposer une modification (voir plus bas).
+Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Claude Code, les fichiers d'un clone local du dépôt). Les règles et les fiches du joueur sont lues dans les documents du projet. Le dépôt GitHub sert à récupérer les outils d'analyse sans les recopier, à mettre à jour les règles et à proposer une modification (voir plus bas).
+
+## Dépôt GitHub
+- Dépôt d'origine: https://github.com/alexandremoyer/echecs-claude
+- Si joueur/profil.md indique un autre dépôt (fork du joueur), utiliser celui-là. Sinon, utiliser le dépôt d'origine.
+- Clone pour lire les outils: `git clone -q --depth 1 <adresse> depot`, dans un dossier de travail. Rien n'est jamais poussé depuis ce clone.
 
 ## Organisation des documents
 | Document | Contenu | Quand le lire |
@@ -13,9 +18,9 @@ Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Clau
 | regles/analyse.md | Exigences pour l'analyse d'une partie | Avant d'analyser une partie |
 | regles/notation.md | Notation algébrique en français | Avant de jouer ou d'analyser |
 | outils/rendu-analyse.md | Procédure technique de la page d'analyse | Avant de construire une page d'analyse |
-| outils/* | Modèle de page, script, exemple de données | Selon outils/rendu-analyse.md |
+| outils/* | Modèle de page, script, exemple de données | Pris dans un clone du dépôt, selon outils/rendu-analyse.md |
 | modeles/* | Squelettes vides des fiches du joueur | Seulement à l'initialisation |
-| joueur/profil.md | Niveau, plateformes, objectifs, habitudes, préférences | Au début de chaque conversation |
+| joueur/profil.md | Niveau, plateformes, objectifs, habitudes, préférences, dépôt | Au début de chaque conversation |
 | joueur/progression.md | Thème de travail, points faibles et forts, repères montrés | Au début de chaque conversation |
 | joueur/ouvertures.md | Ouvertures travaillées et vues | Quand une ouverture est jouée, analysée ou discutée |
 | joueur/historique.md | Index des parties: une ligne par partie, avec des mots-clés | Pour une analyse, un bilan, ou une question sur une partie passée |
@@ -30,7 +35,7 @@ Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Clau
 ## Initialisation (première conversation)
 Si les documents joueur/ n'existent pas encore:
 1. Créer joueur/profil.md, joueur/progression.md, joueur/ouvertures.md et joueur/historique.md à partir des modèles du dossier modeles/. Les fiches joueur/parties/ seront créées partie après partie, à partir de modeles/partie.md.
-2. Poser au joueur, une par une, les questions qui correspondent aux zones [A COMPLETER] de joueur/profil.md, et remplir le document.
+2. Poser au joueur, une par une, les questions qui correspondent aux zones [A COMPLETER] de joueur/profil.md, et remplir le document. Parmi elles: le joueur a-t-il un fork du dépôt? Si oui, noter son adresse; sinon, noter "dépôt d'origine".
 3. Ne rien inventer: une information inconnue reste vide et se complète au fil des parties.
 
 ## Mise à jour après une partie ou une analyse
@@ -44,7 +49,7 @@ Principe: les fiches profil.md, progression.md et ouvertures.md restent courtes 
 
 ## Mise à jour des règles depuis le dépôt
 Sur demande du joueur ("Mets à jour les règles depuis le dépôt"):
-1. Cloner le dépôt indiqué par le joueur (son fork, ou le dépôt d'origine).
+1. Cloner le dépôt du joueur (voir la section Dépôt GitHub).
 2. Comparer avec les documents du projet et résumer au joueur ce qui change.
 3. Réécrire dans le projet instructions.md (sous claude/instructions.md) et les documents regles/, outils/ et modeles/, au même chemin. Supprimer ceux qui n'existent plus dans le dépôt.
 4. Ne jamais toucher aux documents joueur/. Si un modèle a changé (nouvelle section), proposer d'ajouter la section correspondante dans la fiche du joueur.
