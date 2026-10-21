@@ -3,7 +3,7 @@
 Lire instructions.md et suivre ses règles.
 
 ## Emplacement des fiches du joueur (joueur/)
-- Si la conversation est rattachée à un projet claude.ai, ce sont des documents du projet. Le clone ne sert qu'à importer, mettre à jour ou contribuer.
+- Si la conversation est rattachée à un projet claude.ai, ce sont des documents du projet. Le clone sert à récupérer les outils d'analyse, importer, mettre à jour ou contribuer.
 - Sinon (Claude Code dans un clone local), c'est le dossier joueur/ du clone, exclu du dépôt par le .gitignore.
 
 ## Modifications du dépôt

@@ -18,12 +18,13 @@ modeles/             fiches vides du joueur, copiées à l'initialisation
 Les règles et les outils sont communs. Les données personnelles (fiches joueur/) ne sont jamais versionnées: elles vivent dans le projet claude.ai de chacun.
 
 ## Principe
-Tout ce que Claude utilise au quotidien est stocké dans les documents du projet claude.ai: les règles et les outils copiés depuis ce dépôt, et les fiches du joueur. GitHub ne sert que ponctuellement:
+Tout ce que Claude utilise au quotidien est stocké dans les documents du projet claude.ai: les règles et les outils copiés depuis ce dépôt, et les fiches du joueur. GitHub sert aussi:
+- pour récupérer les outils d'analyse (modèle de page, script) sans les recopier dans la conversation, ce qui réduit le coût d'une analyse;
 - pour importer les règles à l'installation;
 - pour les mettre à jour quand le dépôt évolue;
 - pour proposer une amélioration par pull request.
 
-Dans ces trois cas, Claude clone le dépôt le temps de la conversation. Le clone est effacé ensuite, les documents du projet restent.
+Dans tous ces cas, Claude clone le dépôt le temps de la conversation (le dépôt d'origine, ou le fork indiqué dans le profil du joueur). Le clone est effacé ensuite, les documents du projet restent.
 
 ## Installation
 1. Dans claude.ai, créer un projet (par exemple "Echecs").
