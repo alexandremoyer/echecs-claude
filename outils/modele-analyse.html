@@ -175,6 +175,7 @@ button svg { width: 22px; height: 22px; }
 .bestline { margin: 0; padding: 10px 12px; border-radius: 6px; background: var(--bg); font-weight: 600; color: var(--accent); }
 .board-col { gap: 8px; }
 @media (max-width: 820px) { .study { gap: 16px; } }
+.opening { margin: 0; font-size: 14px; color: var(--muted); }
 </style>
 
 <div class="page">
@@ -202,6 +203,7 @@ button svg { width: 22px; height: 22px; }
       <div class="card" id="moveCard" aria-live="polite">
         <div class="mvhead"><span class="mvname" id="mvName"></span><span class="tag" id="mvTag"></span></div>
         <p class="clair" id="mvClair"></p>
+        <p class="opening" id="mvOpening"></p>
         <p class="comment" id="mvText"></p>
         <p class="bestline" id="mvBest"></p>
       </div>
@@ -359,16 +361,19 @@ function renderCard() {
   const name = document.getElementById("mvName"), tag = document.getElementById("mvTag");
   const clair = document.getElementById("mvClair"), text = document.getElementById("mvText");
   const bestLine = document.getElementById("mvBest");
+  const op = document.getElementById("mvOpening");
+  op.textContent = cur > 0 && p.opening ? p.opening : "";
+  op.hidden = !op.textContent;
   if (cur === 0) {
     name.textContent = "Départ"; tag.hidden = true;
     clair.textContent = DEPART;
-    text.textContent = "Chaque coup est commenté et évalué. Le bouton vert sous l'échiquier montre, pour chaque coup, la position juste avant avec le meilleur coup en flèche verte.";
+    text.hidden = false; text.textContent = "Chaque coup est évalué, et les coups importants sont commentés. Le bouton vert sous l'échiquier montre, pour chaque coup, la position juste avant avec le meilleur coup en flèche verte.";
     bestLine.hidden = true; return;
   }
   const t = TAGS[p.tag];
   name.textContent = moveLabel(p) + (t.sym ? " " + t.sym : "");
   tag.hidden = false; tag.textContent = t.label; tag.style.color = t.color;
-  clair.textContent = p.clair; text.textContent = p.text;
+  clair.textContent = p.clair; text.textContent = p.text; text.hidden = !p.text;
   bestLine.hidden = false;
   bestLine.textContent = p.best.played ? "Meilleur coup selon le moteur: " + bestLabel(p) + ", c'est le coup joué." : "Meilleur coup selon le moteur: " + bestLabel(p) + ".";
 }

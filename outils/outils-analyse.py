@@ -12,6 +12,7 @@ Après un coup qui mate, l'évaluation vaut +100 ou -100 sans appel au moteur; a
 nulle (pat, répétition), elle vaut 0. La traduction en clair signale les promotions.
 La commande analyse affiche à la fin l'indicateur de triche (aussi disponible par stats).
 La commande build vérifie elle-même la syntaxe du script de la page avec node.
+Ouvertures: base chess-openings de lichess, clonée par setup dans ~/sf/ouvertures, reconnue par position.
 """
 import base64, json, os, re, shutil, subprocess, sys
 HOME = os.path.expanduser("~")
@@ -23,7 +24,68 @@ def setup():
     subprocess.run(f"pip download chess==1.10.0 --no-deps -d {d} -q && pip install --break-system-packages -q {d}/chess-1.10.0-py3-none-any.whl", shell=True, check=True)
     if not os.path.exists(SF):
         subprocess.run(f"cd {d} && curl -sSL -o sf.tar https://github.com/official-stockfish/Stockfish/releases/download/sf_17.1/stockfish-ubuntu-x86-64-avx2.tar && tar xf sf.tar && chmod +x {SF}", shell=True, check=True)
+    o = os.path.join(d, "ouvertures")
+    if not os.path.exists(o):
+        r = subprocess.run(f"git clone -q --depth 1 https://github.com/lichess-org/chess-openings {o}", shell=True)
+        if r.returncode: print("attention: base d'ouvertures non téléchargée, pas de nom d'ouverture")
     print("ok", SF)
+FAMILLES = {
+    "Queen's Gambit Accepted": "Gambit dame accepté", "Queen's Gambit Declined": "Gambit dame refusé", "Queen's Gambit": "Gambit dame",
+    "Queen's Pawn Game": "Début du pion dame", "King's Pawn Game": "Début du pion roi", "Italian Game": "Partie italienne",
+    "Ruy Lopez": "Partie espagnole", "Scotch Game": "Partie écossaise", "Vienna Game": "Partie viennoise", "Four Knights Game": "Partie des quatre cavaliers",
+    "Three Knights Opening": "Partie des trois cavaliers", "Bishop's Opening": "Partie du fou", "Center Game": "Partie du centre",
+    "King's Gambit Accepted": "Gambit du roi accepté", "King's Gambit Declined": "Gambit du roi refusé", "King's Gambit": "Gambit du roi",
+    "Danish Gambit": "Gambit danois", "Latvian Gambit": "Gambit letton", "Elephant Gambit": "Gambit de l'éléphant", "Englund Gambit": "Gambit Englund",
+    "Englund Gambit Complex": "Gambit Englund", "Blackmar-Diemer Gambit": "Gambit Blackmar-Diemer", "Petrov's Defense": "Défense Petrov",
+    "Philidor Defense": "Défense Philidor", "Sicilian Defense": "Défense sicilienne", "French Defense": "Défense française",
+    "Caro-Kann Defense": "Défense Caro-Kann", "Alekhine Defense": "Défense Alekhine", "Scandinavian Defense": "Défense scandinave",
+    "Pirc Defense": "Défense Pirc", "Modern Defense": "Défense moderne", "Owen Defense": "Défense Owen", "Nimzowitsch Defense": "Défense Nimzowitsch",
+    "Indian Defense": "Défense indienne", "King's Indian Defense": "Défense est-indienne", "Queen's Indian Defense": "Défense ouest-indienne",
+    "Nimzo-Indian Defense": "Défense nimzo-indienne", "Bogo-Indian Defense": "Défense bogo-indienne", "Grünfeld Defense": "Défense Grünfeld",
+    "Slav Defense": "Défense slave", "Semi-Slav Defense": "Défense semi-slave", "Dutch Defense": "Défense hollandaise", "Benoni Defense": "Défense Benoni",
+    "Benko Gambit": "Gambit Benko", "Budapest Defense": "Gambit de Budapest", "London System": "Système de Londres", "English Opening": "Ouverture anglaise",
+    "Réti Opening": "Ouverture Réti", "Zukertort Opening": "Ouverture Zukertort", "Bird Opening": "Ouverture Bird", "Nimzo-Larsen Attack": "Attaque Nimzo-Larsen",
+    "Polish Opening": "Ouverture polonaise", "Grob Opening": "Ouverture Grob", "Saragossa Opening": "Ouverture Saragosse", "Mieses Opening": "Ouverture Mieses",
+    "Van't Kruijs Opening": "Ouverture Van't Kruijs", "Amar Opening": "Ouverture Amar", "Ware Opening": "Ouverture Ware", "Sodium Attack": "Attaque Sodium",
+}
+MOTS = {"Advance": "d'avance", "Exchange": "d'échange", "Classical": "classique", "Modern": "moderne", "Normal": "normale",
+        "Closed": "fermée", "Open": "ouverte", "Accelerated": "accélérée", "Main": "principale", "Fianchetto": "fianchetto"}
+def nom_fr(name):
+    """Nom de la base lichess en français: famille traduite, 'X Variation' devient 'variante X'."""
+    fam, _, reste = name.partition(": ")
+    out = [FAMILLES.get(fam, fam)]
+    for v in [x for x in reste.split(", ") if x]:
+        if v.endswith(" Variation"):
+            v = "variante " + " ".join(MOTS.get(w, w) for w in v[:-10].split())
+        elif v == "Main Line": v = "ligne principale"
+        out.append(v)
+    return ", ".join(out)
+def ouvertures(mv_list):
+    """Pour chaque demi-coup: ouverture reconnue par position (base lichess), ordre de coups inhabituel,
+    ou sortie de la théorie. None quand il n'y a rien à dire ou que la base est absente."""
+    import chess, csv, glob
+    book = {}
+    for f in sorted(glob.glob(os.path.join(HOME, "sf", "ouvertures", "?.tsv"))):
+        for row in csv.DictReader(open(f), delimiter="\t"):
+            bb = chess.Board()
+            for tok in row["pgn"].split():
+                if not tok[0].isdigit(): bb.push_san(tok)
+            book[bb.epd()] = (row["eco"], row["name"])
+    if not book: return [None] * len(mv_list)
+    b = chess.Board(); names = []
+    for m in mv_list:
+        b.push(b.parse_san(fr2en(m))); names.append(book.get(b.epd()))
+    last = max([i for i, n in enumerate(names) if n], default=-1); cur = None; out = []
+    for i, n in enumerate(names):
+        if n: cur = n; out.append(f"Théorie: {nom_fr(n[1])} ({n[0]})")
+        elif i < last and cur: out.append(f"Théorie: ordre de coups inhabituel ({nom_fr(cur[1])}), la théorie reprend ensuite")
+        elif i == last + 1 and cur: out.append(f"Sortie de la théorie. Dernière position connue: {nom_fr(cur[1])} ({cur[0]})")
+        else: out.append(None)
+    return out
+def afficher_ouvertures(mv_list):
+    print("Ouvertures (base lichess):")
+    for lab, o in zip(labels(mv_list), ouvertures(mv_list)):
+        if o: print(f"- {lab}: {o}")
 def fr2en(san):
     san = re.sub(r"=([DTFC])", lambda m: "=" + FR2EN[m.group(1)], san)
     return FR2EN[san[0]] + san[1:] if san[0] in FR2EN else san
@@ -49,7 +111,7 @@ def analyse(pj, out):
         res.append(dict(ply=k, san=m, fen_before=fen, after=after / 100, best=best))
         print(k, m, "après", after / 100, "| meilleurs:", best, flush=True)
     eng.quit(); json.dump(res, open(out, "w"), ensure_ascii=False, indent=0)
-    stats(out)
+    stats(out); afficher_ouvertures(moves_of(p["coups"]))
 def stats(aj):
     """Indicateur de triche: perte moyenne par coup (plafonnée à 10 points), coups au niveau
     du moteur, erreurs de plus d'un point, pour chaque camp, à partir du 3e coup."""
@@ -64,6 +126,8 @@ def stats(aj):
             if l > 1: errs.append(f"{a['ply'] // 2 + 1}{'.' if side == 0 else '...'}{a['san']} ({l:.1f})")
         if not losses: continue
         print(f"- {name}: {round(100 * sum(losses) / len(losses))} centièmes par coup, {top} coups sur {len(losses)} au niveau du moteur, {len(errs)} erreurs de plus d'un point: {', '.join(errs) or 'aucune'}")
+    tags = [f"{a['ply'] // 2 + 1}{'.' if a['ply'] % 2 == 0 else '...'}{a['san']} {auto_tag(a)}" for a in an if auto_tag(a) != "bon"]
+    print("Etiquettes automatiques (coups qui ne sont pas notés bon):", ", ".join(tags) or "aucune")
 def clair(b, mv):
     import chess
     NAME = {chess.PAWN: ("pion", "m"), chess.KNIGHT: ("cavalier", "m"), chess.BISHOP: ("fou", "m"),
@@ -95,19 +159,50 @@ def pieces_js():
         svg = '<svg xmlns="http://www.w3.org/2000/svg" width="45" height="45">' + g + "</svg>"
         out[sym] = "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
     return json.dumps(out)
+def auto_tag(a):
+    """Etiquette d'après la perte mesurée par le moteur (voir regles/analyse.md)."""
+    if not a["best"]: return "bon"
+    s = 1 if a["ply"] % 2 == 0 else -1
+    before = max(-10, min(10, s * a["best"][0][1])); after = max(-10, min(10, s * a["after"]))
+    loss = max(0, before - after)
+    if loss <= 0.5: return "bon"
+    if after >= 5 or (before <= -5 and loss <= 2.5): return "imprecis"
+    if loss <= 1 or (loss <= 2.5 and abs(after) < 1): return "imprecis"
+    if loss <= 2.5: return "erreur"
+    return "erreur" if after >= 1.5 else "gaffe"
+def labels(mv_list):
+    import chess
+    b = chess.Board(); out = []
+    for m in mv_list:
+        mv = b.parse_san(fr2en(m)); out.append(f"{b.fullmove_number}{'.' if b.turn else '...'}{en2fr(b.san(mv))}"); b.push(mv)
+    return out
+def norm(lab): return re.sub(r"[+#!?\s]", "", lab)
+def commentaires(p, mv_list):
+    """Commentaires: dictionnaire {coup en notation française: commentaire}, ou ancienne liste complète."""
+    c = p.get("commentaires", {})
+    if isinstance(c, list):
+        assert len(c) == len(mv_list), "liste de commentaires: un par demi-coup"
+        return dict(enumerate(c))
+    idx = {norm(l): i for i, l in enumerate(labels(mv_list))}
+    out = {}
+    for k, v in c.items():
+        assert norm(k) in idx, f"commentaire sur un coup qui n'est pas dans la partie: {k}"
+        out[idx[norm(k)]] = v
+    return out
 def build(pj, aj, tpl, out):
     import chess
     p = json.load(open(pj)); an = json.load(open(aj)); mv_list = moves_of(p["coups"])
-    assert len(p["commentaires"]) == len(mv_list) == len(an), "un commentaire par demi-coup"
+    assert len(mv_list) == len(an), "analyse.json ne correspond pas aux coups"
+    com = commentaires(p, mv_list); ops = ouvertures(mv_list)
     b = chess.Board(); PL = [{"fen": b.board_fen(), "eval": 0.3, "mate": None}]; befores = []
     for k, m in enumerate(mv_list):
-        c = p["commentaires"][k]; mv = b.parse_san(fr2en(m)); before = b.board_fen(); befores.append(b.fen())
+        c = com.get(k, {}); mv = b.parse_san(fr2en(m)); before = b.board_fen(); befores.append(b.fen())
         bsan = c.get("best") or an[k]["best"][0][0]; bm = b.parse_san(fr2en(bsan))
         cl = clair(b, mv); san = en2fr(b.san(mv)); b.push(mv)
         ev = an[k]["after"]; ev = max(-100, min(100, ev))
         PL.append({"num": k // 2 + 1, "side": "B" if k % 2 == 0 else "N", "san": san, "clair": cl,
                    "fen": b.board_fen(), "before": before, "frm": mv.uci()[:2], "to": mv.uci()[2:4],
-                   "eval": round(ev, 1), "mate": None, "tag": c["tag"], "text": c["text"],
+                   "eval": round(ev, 1), "mate": None, "opening": ops[k], "tag": c.get("tag") or auto_tag(an[k]), "text": c.get("text", ""),
                    "best": {"san": en2fr(chess.Board(befores[-1]).san(bm)), "frm": bm.uci()[:2], "to": bm.uci()[2:4], "played": bm == mv},
                    "arrows": [{"kind": "threat", "frm": a, "to": z} for a, z in c.get("rouge", [])]})
     befores.append(b.fen())
@@ -137,4 +232,4 @@ def check_js(h):
     print("script de la page: syntaxe ok")
 if __name__ == "__main__":
     a = sys.argv[1:]
-    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1]), "build": lambda: build(*a[1:5])}[a[0]]()
+    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1]), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])), "build": lambda: build(*a[1:5])}[a[0]]()
