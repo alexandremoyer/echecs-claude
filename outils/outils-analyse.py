@@ -64,6 +64,8 @@ def stats(aj):
             if l > 1: errs.append(f"{a['ply'] // 2 + 1}{'.' if side == 0 else '...'}{a['san']} ({l:.1f})")
         if not losses: continue
         print(f"- {name}: {round(100 * sum(losses) / len(losses))} centièmes par coup, {top} coups sur {len(losses)} au niveau du moteur, {len(errs)} erreurs de plus d'un point: {', '.join(errs) or 'aucune'}")
+    tags = [f"{a['ply'] // 2 + 1}{'.' if a['ply'] % 2 == 0 else '...'}{a['san']} {auto_tag(a)}" for a in an if auto_tag(a) != "bon"]
+    print("Etiquettes automatiques (coups qui ne sont pas notés bon):", ", ".join(tags) or "aucune")
 def clair(b, mv):
     import chess
     NAME = {chess.PAWN: ("pion", "m"), chess.KNIGHT: ("cavalier", "m"), chess.BISHOP: ("fou", "m"),
@@ -95,19 +97,50 @@ def pieces_js():
         svg = '<svg xmlns="http://www.w3.org/2000/svg" width="45" height="45">' + g + "</svg>"
         out[sym] = "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
     return json.dumps(out)
+def auto_tag(a):
+    """Etiquette d'après la perte mesurée par le moteur (voir regles/analyse.md)."""
+    if not a["best"]: return "bon"
+    s = 1 if a["ply"] % 2 == 0 else -1
+    before = max(-10, min(10, s * a["best"][0][1])); after = max(-10, min(10, s * a["after"]))
+    loss = max(0, before - after)
+    if loss <= 0.5: return "bon"
+    if after >= 5 or (before <= -5 and loss <= 2.5): return "imprecis"
+    if loss <= 1 or (loss <= 2.5 and abs(after) < 1): return "imprecis"
+    if loss <= 2.5: return "erreur"
+    return "erreur" if after >= 1.5 else "gaffe"
+def labels(mv_list):
+    import chess
+    b = chess.Board(); out = []
+    for m in mv_list:
+        mv = b.parse_san(fr2en(m)); out.append(f"{b.fullmove_number}{'.' if b.turn else '...'}{en2fr(b.san(mv))}"); b.push(mv)
+    return out
+def norm(lab): return re.sub(r"[+#!?\s]", "", lab)
+def commentaires(p, mv_list):
+    """Commentaires: dictionnaire {coup en notation française: commentaire}, ou ancienne liste complète."""
+    c = p.get("commentaires", {})
+    if isinstance(c, list):
+        assert len(c) == len(mv_list), "liste de commentaires: un par demi-coup"
+        return dict(enumerate(c))
+    idx = {norm(l): i for i, l in enumerate(labels(mv_list))}
+    out = {}
+    for k, v in c.items():
+        assert norm(k) in idx, f"commentaire sur un coup qui n'est pas dans la partie: {k}"
+        out[idx[norm(k)]] = v
+    return out
 def build(pj, aj, tpl, out):
     import chess
     p = json.load(open(pj)); an = json.load(open(aj)); mv_list = moves_of(p["coups"])
-    assert len(p["commentaires"]) == len(mv_list) == len(an), "un commentaire par demi-coup"
+    assert len(mv_list) == len(an), "analyse.json ne correspond pas aux coups"
+    com = commentaires(p, mv_list)
     b = chess.Board(); PL = [{"fen": b.board_fen(), "eval": 0.3, "mate": None}]; befores = []
     for k, m in enumerate(mv_list):
-        c = p["commentaires"][k]; mv = b.parse_san(fr2en(m)); before = b.board_fen(); befores.append(b.fen())
+        c = com.get(k, {}); mv = b.parse_san(fr2en(m)); before = b.board_fen(); befores.append(b.fen())
         bsan = c.get("best") or an[k]["best"][0][0]; bm = b.parse_san(fr2en(bsan))
         cl = clair(b, mv); san = en2fr(b.san(mv)); b.push(mv)
         ev = an[k]["after"]; ev = max(-100, min(100, ev))
         PL.append({"num": k // 2 + 1, "side": "B" if k % 2 == 0 else "N", "san": san, "clair": cl,
                    "fen": b.board_fen(), "before": before, "frm": mv.uci()[:2], "to": mv.uci()[2:4],
-                   "eval": round(ev, 1), "mate": None, "tag": c["tag"], "text": c["text"],
+                   "eval": round(ev, 1), "mate": None, "tag": c.get("tag") or auto_tag(an[k]), "text": c.get("text", ""),
                    "best": {"san": en2fr(chess.Board(befores[-1]).san(bm)), "frm": bm.uci()[:2], "to": bm.uci()[2:4], "played": bm == mv},
                    "arrows": [{"kind": "threat", "frm": a, "to": z} for a, z in c.get("rouge", [])]})
     befores.append(b.fen())
