@@ -69,7 +69,7 @@ Utilisateurs de Claude Code: le fichier CLAUDE.md permet de travailler directeme
 
 ## Remarques
 - Les pages d'analyse demandent que la session de Claude puisse installer des paquets Python et cloner ou télécharger depuis GitHub (ce dépôt, Stockfish, la base d'ouvertures). Sans GitHub, Claude analyse quand même la partie, mais sans moteur, et doit le préciser. Sans la base d'ouvertures, la page n'affiche pas le nom de l'ouverture.
-- Coût: une analyse est organisée pour limiter les échanges avec les outils (chaque échange relit toute la conversation), et ne comporte des variantes que sur demande. Une partie simple peut aussi être commentée directement dans la conversation, sans page.
+- Coût: une analyse est organisée pour limiter les échanges avec les outils (chaque échange relit toute la conversation), et ne comporte des variantes que sur demande. Une seule commande (analyser) récupère la partie et l'analyse au moteur dans le délai d'un échange, et la construction de la page complète elle-même les champs facultatifs oubliés: les étapes de rattrapage disparaissent. Une analyse de partie en ligne tient en six échanges. La plus grosse part du coût de chaque échange reste les consignes propres à claude.ai, sur lesquelles le dépôt n'a pas de prise. Une partie simple peut aussi être commentée directement dans la conversation, sans page.
 - Pièces de l'échiquier: jeu cburnett de Colin M.L. Burnett. Moteur: Stockfish.
 
 ## Licence
