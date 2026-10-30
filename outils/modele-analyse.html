@@ -362,13 +362,13 @@ function renderCard() {
   if (cur === 0) {
     name.textContent = "Départ"; tag.hidden = true;
     clair.textContent = DEPART;
-    text.textContent = "Chaque coup est commenté et évalué. Le bouton vert sous l'échiquier montre, pour chaque coup, la position juste avant avec le meilleur coup en flèche verte.";
+    text.hidden = false; text.textContent = "Chaque coup est évalué, et les coups importants sont commentés. Le bouton vert sous l'échiquier montre, pour chaque coup, la position juste avant avec le meilleur coup en flèche verte.";
     bestLine.hidden = true; return;
   }
   const t = TAGS[p.tag];
   name.textContent = moveLabel(p) + (t.sym ? " " + t.sym : "");
   tag.hidden = false; tag.textContent = t.label; tag.style.color = t.color;
-  clair.textContent = p.clair; text.textContent = p.text;
+  clair.textContent = p.clair; text.textContent = p.text; text.hidden = !p.text;
   bestLine.hidden = false;
   bestLine.textContent = p.best.played ? "Meilleur coup selon le moteur: " + bestLabel(p) + ", c'est le coup joué." : "Meilleur coup selon le moteur: " + bestLabel(p) + ".";
 }
