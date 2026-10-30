@@ -235,7 +235,7 @@ button svg { width: 22px; height: 22px; }
 {{REMARQUES}}
   </section>
 
-  <section class="vars">
+  <section class="vars" id="varsSection">
     <h2>Variantes expliquées</h2>
     <p class="view-note" style="margin:0">Choisir une variante, puis avancer coup par coup.</p>
     <div class="vtabs" id="vtabs"></div>
@@ -446,7 +446,8 @@ function vdraw() {
 document.getElementById("vPrev").onclick = () => { if (vs > 0) { vs--; vdraw(); } };
 document.getElementById("vNext").onclick = () => { if (vs < VARS[vi].steps.length - 1) { vs++; vdraw(); } };
 
-function all() { render(); vdraw(); }
+if (!VARS.length) document.getElementById("varsSection").style.display = "none";
+function all() { render(); if (VARS.length) vdraw(); }
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", all);
 new MutationObserver(all).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 all();
