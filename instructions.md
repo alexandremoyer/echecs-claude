@@ -23,7 +23,8 @@ Les "documents" cités ici sont les documents du projet claude.ai (ou, avec Clau
 | joueur/profil.md | Niveau, plateformes, objectifs, habitudes, préférences, dépôt | Au début de chaque conversation |
 | joueur/progression.md | Thème de travail, points faibles et forts, repères montrés | Au début de chaque conversation |
 | joueur/ouvertures.md | Ouvertures travaillées et vues | Quand une ouverture est jouée, analysée ou discutée |
-| joueur/historique.md | Index des parties: une ligne par partie, avec des mots-clés | Pour une analyse, un bilan, ou une question sur une partie passée |
+| joueur/historique.md | Index des parties du mois en cours (une ligne courte par partie) et liste des archives | Pour une analyse, un bilan, ou une question sur une partie récente |
+| joueur/historique-AAAA-MM.md | Index archivé d'un mois passé | Pour un bilan ou une question sur une partie ancienne |
 | joueur/parties/partie-NNN.md | Une partie: coups, leçons, remarques du joueur | Seulement les parties utiles, repérées dans l'index |
 
 ## Règles générales
@@ -41,7 +42,8 @@ Si les documents joueur/ n'existent pas encore:
 ## Mise à jour après une partie ou une analyse
 Principe: les fiches profil.md, progression.md et ouvertures.md restent courtes (une page chacune au plus) et ne gardent que l'essentiel. Le détail d'une partie (coups, erreurs, variantes, chiffres) va uniquement dans sa fiche joueur/parties/partie-NNN.md.
 - joueur/parties/partie-NNN.md: nouvelle fiche à partir de modeles/partie.md (coups, leçons, remarques du joueur, points positifs). Numéro sur trois chiffres, à la suite du dernier de l'index.
-- joueur/historique.md: nouvelle ligne dans l'index, avec 5 à 8 mots-clés choisis pour retrouver la partie plus tard (ouverture, thèmes tactiques, erreurs et réussites marquantes). Si une partie déjà indexée est complétée, mettre aussi sa ligne à jour.
+- joueur/historique.md: nouvelle ligne courte dans l'index du mois en cours (format dans modeles/historique.md): plateforme, couleur et résultat, puis 5 à 6 mots-clés sans coups ni chiffres, choisis pour retrouver la partie plus tard (ouverture en premier, puis thèmes tactiques, erreurs et réussites marquantes). Les détails restent dans la fiche de la partie. Si une partie déjà indexée est complétée, mettre aussi sa ligne à jour.
+- Changement de mois: déplacer les lignes des mois passés dans joueur/historique-AAAA-MM.md (même en-tête et même format, un document par mois), et ajouter ce document à la ligne "Archives" de joueur/historique.md, avec les numéros de parties qu'il contient. La numérotation continue: le numéro suivant est celui de la dernière partie indexée, archives comprises.
 - joueur/progression.md: mise à jour seulement si un point récurrent change (nouveau point faible qui revient, point corrigé, nouveau point fort net, thème terminé ou nouveau thème). Un ou deux exemples par point au plus, en remplaçant les plus anciens.
 - joueur/ouvertures.md: mise à jour seulement si le répertoire change (nouvelle ouverture rencontrée, nouveau coup conseillé, nouveau piège important). Pas de compte rendu partie par partie.
 - joueur/profil.md: niveau ou classement s'ils ont changé, habitudes et préférences exprimées par le joueur.
