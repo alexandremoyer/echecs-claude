@@ -4,7 +4,9 @@
 Usage:
   python3 outils-analyse.py setup
   python3 outils-analyse.py analyse partie.json analyse.json
-  python3 outils-analyse.py stats analyse.json
+  python3 outils-analyse.py stats analyse.json [partie.json]
+  python3 outils-analyse.py parties PSEUDO [N]
+  python3 outils-analyse.py recuperer PSEUDO CHOIX [partie.json]
   python3 outils-analyse.py build partie.json analyse.json modele-analyse.html sortie.html
 Voir outils/rendu-analyse.md. Si le modèle contient __PIECES__, les pièces cburnett sont
 générées depuis chess.svg (python-chess) au lieu d'être recopiées en base64.
@@ -13,6 +15,8 @@ nulle (pat, répétition), elle vaut 0. La traduction en clair signale les promo
 La commande analyse affiche à la fin l'indicateur de triche (aussi disponible par stats).
 La commande build vérifie elle-même la syntaxe du script de la page avec node.
 Ouvertures: base chess-openings de lichess, clonée par setup dans ~/sf/ouvertures, reconnue par position.
+Parties chess.com: API publique (api.chess.com doit être autorisé). recuperer écrit partie.json avec les coups
+en notation française, la pendule ([temps restant, temps du coup] en secondes) et les informations de la partie.
 """
 import base64, json, os, re, shutil, subprocess, sys
 HOME = os.path.expanduser("~")
@@ -86,6 +90,70 @@ def afficher_ouvertures(mv_list):
     print("Ouvertures (base lichess):")
     for lab, o in zip(labels(mv_list), ouvertures(mv_list)):
         if o: print(f"- {lab}: {o}")
+UA = "echecs-claude (github.com/alexandremoyer/echecs-claude)"
+def api(url):
+    r = subprocess.run(["curl", "-sS", "-f", "-m", "30", "-A", UA, url], capture_output=True, text=True)
+    if r.returncode:
+        sys.exit(f"chess.com inaccessible ({r.stderr.strip()[:150]}). Autoriser api.chess.com dans les domaines autorisés de claude.ai, ou demander le PGN au joueur.")
+    return json.loads(r.stdout)
+def parties_chesscom(pseudo, n):
+    arch = api(f"https://api.chess.com/pub/player/{pseudo.lower()}/games/archives")["archives"]; out = []
+    for u in reversed(arch):
+        out += sorted(api(u)["games"], key=lambda g: g["end_time"], reverse=True)
+        if len(out) >= n: break
+    return out[:n]
+FIN = {"checkmated": "par mat", "resigned": "par abandon", "timeout": "au temps", "abandoned": "par abandon (déconnexion)"}
+NUL = {"agreed": "d'un commun accord", "repetition": "par répétition", "stalemate": "par pat", "insufficient": "par matériel insuffisant",
+       "50move": "par la règle des 50 coups", "timevsinsufficient": "temps contre matériel insuffisant"}
+def resultat(g, pseudo):
+    moi = "white" if g["white"]["username"].lower() == pseudo.lower() else "black"; adv = "black" if moi == "white" else "white"
+    r, ra = g[moi]["result"], g[adv]["result"]
+    if r == "win": return moi, adv, ("victoire " + FIN.get(ra, "")).strip()
+    if r in NUL: return moi, adv, "nulle " + NUL[r]
+    return moi, adv, ("défaite " + FIN.get(r, "")).strip()
+def ligne_partie(i, g, pseudo):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    d = datetime.fromtimestamp(g["end_time"], ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y %H:%M")
+    moi, adv, res = resultat(g, pseudo); nb = max([int(x) for x in re.findall(r"(\d+)\. ", g.get("pgn", ""))] or [0])
+    ouv = g.get("eco", "").rsplit("/", 1)[-1].replace("-", " ")
+    return f"{i}. {d} | {g.get('time_class')} {g.get('time_control')} | {'Blancs' if moi == 'white' else 'Noirs'} contre {g[adv]['username']} ({g[adv]['rating']}) | {res} | {nb} coups | {ouv}"
+def lister(pseudo, n=10):
+    for i, g in enumerate(parties_chesscom(pseudo, n), 1): print(ligne_partie(i, g, pseudo))
+def mmss(s): s = int(round(s)); return f"{s // 60}:{s % 60:02d}"
+def duree(s): return f"{s:.0f} s" if s < 60 else mmss(s)
+def recuperer(pseudo, choix, out="partie.json"):
+    import chess.pgn, io
+    games = parties_chesscom(pseudo, 300)
+    if choix.isdigit() and len(choix) < 5: g = games[int(choix) - 1]
+    else:
+        c = choix.lower().rstrip("/"); cid = c.split("/")[-1]
+        cands = [x for x in games if x["url"].rstrip("/").endswith("/" + cid) or c in (x["white"]["username"].lower(), x["black"]["username"].lower())]
+        if not cands: sys.exit(f"partie introuvable parmi les {len(games)} dernières: {choix}")
+        g = cands[0]
+    game = chess.pgn.read_game(io.StringIO(g["pgn"])); tc = game.headers.get("TimeControl", "-")
+    base, inc = (tc.split("+") + ["0"])[:2] if tc[:1].isdigit() and "/" not in tc else (None, "0")
+    b = game.board(); toks, pend = [], []; last = [float(base)] * 2 if base else None
+    for node in game.mainline():
+        side = 0 if b.turn else 1; san = en2fr(b.san(node.move))
+        toks.append(f"{b.fullmove_number}.{san}" if b.turn else san); b.push(node.move); c = node.clock()
+        if c is not None and last: pend.append([round(c, 1), round(max(0, last[side] - c + float(inc)), 1)]); last[side] = c
+        else: pend.append(None)
+    moi, adv, res = resultat(g, pseudo); h = game.headers
+    infos = (f"{h.get('White')} ({h.get('WhiteElo')}) contre {h.get('Black')} ({h.get('BlackElo')}), {h.get('Date', '').replace('.', '/')}, "
+             f"cadence {tc}, {pseudo} avec les {'Blancs' if moi == 'white' else 'Noirs'}, {res}. {h.get('Termination', '')}. {g['url']}")
+    p = {"coups": " ".join(toks), "flip": moi == "black", "pendule": pend if any(pend) else None, "infos": infos}
+    json.dump(p, open(out, "w"), ensure_ascii=False, indent=1)
+    print(infos); print(p["coups"])
+    if p["pendule"]: resume_pendule(moves_of(p["coups"]), p["pendule"])
+def resume_pendule(mv_list, pend):
+    print("Pendule:"); labs = labels(mv_list)
+    for side, name in ((0, "Blancs"), (1, "Noirs")):
+        pts = [(labs[i], q) for i, q in enumerate(pend) if q and i % 2 == side]
+        if not pts: continue
+        rapides = sum(1 for _, q in pts if q[1] < 3); longs = sorted(pts, key=lambda x: -x[1][1])[:3]
+        print(f"- {name}: temps utilisé {mmss(sum(q[1] for _, q in pts))}, reste {mmss(pts[-1][1][0])} à la fin, {rapides} coups sur {len(pts)} joués en moins de 3 s, plus longues réflexions: "
+              + ", ".join(f"{l} ({duree(q[1])})" for l, q in longs))
 def fr2en(san):
     san = re.sub(r"=([DTFC])", lambda m: "=" + FR2EN[m.group(1)], san)
     return FR2EN[san[0]] + san[1:] if san[0] in FR2EN else san
@@ -111,11 +179,12 @@ def analyse(pj, out):
         res.append(dict(ply=k, san=m, fen_before=fen, after=after / 100, best=best))
         print(k, m, "après", after / 100, "| meilleurs:", best, flush=True)
     eng.quit(); json.dump(res, open(out, "w"), ensure_ascii=False, indent=0)
-    stats(out); afficher_ouvertures(moves_of(p["coups"]))
-def stats(aj):
+    stats(out, pj); afficher_ouvertures(moves_of(p["coups"]))
+def stats(aj, pj=None):
     """Indicateur de triche: perte moyenne par coup (plafonnée à 10 points), coups au niveau
     du moteur, erreurs de plus d'un point, pour chaque camp, à partir du 3e coup."""
     an = json.load(open(aj)); print("Indicateur de triche (à partir du 3e coup):")
+    pend = (json.load(open(pj)).get("pendule") if pj else None) or []
     for side, name in ((0, "Blancs"), (1, "Noirs")):
         losses, top, errs = [], 0, []
         for a in an:
@@ -123,7 +192,9 @@ def stats(aj):
             l = a["best"][0][1] - a["after"]
             l = max(0, min(10, l if side == 0 else -l)); losses.append(l)
             if a["san"].rstrip("+#") == a["best"][0][0].rstrip("+#") or l <= 0.1: top += 1
-            if l > 1: errs.append(f"{a['ply'] // 2 + 1}{'.' if side == 0 else '...'}{a['san']} ({l:.1f})")
+            if l > 1:
+                t = pend[a["ply"]] if a["ply"] < len(pend) and pend[a["ply"]] else None
+                errs.append(f"{a['ply'] // 2 + 1}{'.' if side == 0 else '...'}{a['san']} ({l:.1f}{', joué en ' + duree(t[1]) if t else ''})")
         if not losses: continue
         print(f"- {name}: {round(100 * sum(losses) / len(losses))} centièmes par coup, {top} coups sur {len(losses)} au niveau du moteur, {len(errs)} erreurs de plus d'un point: {', '.join(errs) or 'aucune'}")
     tags = [f"{a['ply'] // 2 + 1}{'.' if a['ply'] % 2 == 0 else '...'}{a['san']} {auto_tag(a)}" for a in an if auto_tag(a) != "bon"]
@@ -193,7 +264,7 @@ def build(pj, aj, tpl, out):
     import chess
     p = json.load(open(pj)); an = json.load(open(aj)); mv_list = moves_of(p["coups"])
     assert len(mv_list) == len(an), "analyse.json ne correspond pas aux coups"
-    com = commentaires(p, mv_list); ops = ouvertures(mv_list)
+    com = commentaires(p, mv_list); ops = ouvertures(mv_list); pend = p.get("pendule") or []
     b = chess.Board(); PL = [{"fen": b.board_fen(), "eval": 0.3, "mate": None}]; befores = []
     for k, m in enumerate(mv_list):
         c = com.get(k, {}); mv = b.parse_san(fr2en(m)); before = b.board_fen(); befores.append(b.fen())
@@ -202,7 +273,7 @@ def build(pj, aj, tpl, out):
         ev = an[k]["after"]; ev = max(-100, min(100, ev))
         PL.append({"num": k // 2 + 1, "side": "B" if k % 2 == 0 else "N", "san": san, "clair": cl,
                    "fen": b.board_fen(), "before": before, "frm": mv.uci()[:2], "to": mv.uci()[2:4],
-                   "eval": round(ev, 1), "mate": None, "opening": ops[k], "tag": c.get("tag") or auto_tag(an[k]), "text": c.get("text", ""),
+                   "eval": round(ev, 1), "mate": None, "opening": ops[k], "clock": f"Pendule: coup joué en {duree(pend[k][1])}, reste {mmss(pend[k][0])}" if k < len(pend) and pend[k] else None, "tag": c.get("tag") or auto_tag(an[k]), "text": c.get("text", ""),
                    "best": {"san": en2fr(chess.Board(befores[-1]).san(bm)), "frm": bm.uci()[:2], "to": bm.uci()[2:4], "played": bm == mv},
                    "arrows": [{"kind": "threat", "frm": a, "to": z} for a, z in c.get("rouge", [])]})
     befores.append(b.fen())
@@ -232,4 +303,5 @@ def check_js(h):
     print("script de la page: syntaxe ok")
 if __name__ == "__main__":
     a = sys.argv[1:]
-    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1]), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])), "build": lambda: build(*a[1:5])}[a[0]]()
+    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1], a[2] if len(a) > 2 else None), "parties": lambda: lister(a[1], int(a[2]) if len(a) > 2 else 10),
+     "recuperer": lambda: recuperer(a[1], a[2], a[3] if len(a) > 3 else "partie.json"), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])), "build": lambda: build(*a[1:5])}[a[0]]()
