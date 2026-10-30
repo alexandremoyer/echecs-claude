@@ -2,8 +2,8 @@
 
 Un projet claude.ai pour progresser aux échecs avec Claude:
 - jouer des parties dans la conversation, à l'écrit ou en mode vocal;
-- faire analyser ses parties jouées en ligne (récupérées directement sur chess.com avec son pseudo, ou PGN de chess.com ou Lichess);
-- obtenir pour chaque partie une page d'analyse interactive, vérifiée avec le moteur Stockfish: étiquette de chaque coup, commentaires sur les coups importants, suivi de l'ouverture et de ses variantes, pendule (parties chess.com récupérées), variantes à rejouer sur demande;
+- faire analyser ses parties jouées en ligne (récupérées directement sur chess.com ou Lichess avec son pseudo, ou PGN collé);
+- obtenir pour chaque partie une page d'analyse interactive, vérifiée avec le moteur Stockfish: étiquette de chaque coup, commentaires sur les coups importants, suivi de l'ouverture et de ses variantes, pendule (parties récupérées), variantes à rejouer sur demande;
 - garder un suivi de sa progression: ouvertures, points faibles, historique des parties.
 
 ## Contenu du dépôt
@@ -26,7 +26,7 @@ Tout ce que Claude utilise au quotidien est stocké dans les documents du projet
 
 Dans tous ces cas, Claude clone le dépôt le temps de la conversation (le dépôt d'origine, ou le fork indiqué dans le profil du joueur). Le clone est effacé ensuite, les documents du projet restent.
 
-Parties chess.com: Claude peut récupérer une partie directement avec le pseudo du joueur (API publique de chess.com), pendule comprise, si le domaine api.chess.com est autorisé dans les réglages de claude.ai (voir Installation, étape 4). Sinon, on lui colle le PGN.
+Parties chess.com et Lichess: Claude peut récupérer une partie directement avec le pseudo du joueur (API publiques de chess.com et de Lichess), pendule comprise, si le domaine correspondant (api.chess.com, lichess.org) est autorisé dans les réglages de claude.ai (voir Installation, étape 4). Sinon, on lui colle le PGN.
 
 ## Installation
 1. Dans claude.ai, créer un projet (par exemple "Echecs").
@@ -40,12 +40,12 @@ Parties chess.com: Claude peut récupérer une partie directement avec le pseudo
    - **sans GitHub**: télécharger le dépôt (bouton "Code" puis "Download ZIP"), le joindre et demander "Enregistre chaque fichier de ce ZIP comme document du projet, au même chemin, sauf README.md, CLAUDE.md et .gitignore".
 
    Les fichiers doivent être des documents du projet écrits par Claude, et non de simples fichiers déposés dans les connaissances du projet: c'est ce qui permet à Claude de créer puis de mettre à jour les fiches du joueur.
-4. Facultatif, pour que Claude récupère lui-même les parties chess.com: autoriser le domaine `api.chess.com`. Sur claude.ai, dans un navigateur: Paramètres, Capacités, liste des domaines autorisés, ajouter `api.chess.com`. Avec un abonnement individuel payant, chacun le fait lui-même; avec un abonnement Team ou Enterprise, c'est l'administrateur qui le fait (Paramètres de l'organisation, Capacités); avec l'offre gratuite, ce n'est pas possible. Sans ce réglage, on colle simplement le PGN de chaque partie.
-5. Dans une nouvelle conversation, écrire "Initialise mon profil". Claude crée les fiches joueur/ et pose quelques questions (niveau, classement, plateforme, notation, objectifs, fork éventuel du dépôt).
+4. Facultatif, pour que Claude récupère lui-même les parties en ligne: autoriser `api.chess.com` (chess.com) et/ou `lichess.org` (Lichess). Sur claude.ai, dans un navigateur: Paramètres, Capacités, liste des domaines autorisés, ajouter le ou les domaines. Avec un abonnement individuel payant, chacun le fait lui-même; avec un abonnement Team ou Enterprise, c'est l'administrateur qui le fait (Paramètres de l'organisation, Capacités); avec l'offre gratuite, ce n'est pas possible. Sans ce réglage, on colle simplement le PGN de chaque partie.
+5. Dans une nouvelle conversation, écrire "Initialise mon profil". Claude crée les fiches joueur/ et pose quelques questions (niveau, classement, plateformes et pseudos, notation, objectifs, fork éventuel du dépôt).
 
 ## Utilisation
 - **Jouer une partie**: ouvrir une nouvelle conversation dans le projet pour chaque partie. Claude demande la couleur (ou un tirage au sort), l'ouverture éventuelle et le thème éventuel.
-- **Analyser une partie chess.com**: demander par exemple "Analyse ma dernière partie", "ma partie contre tel adversaire", "liste mes 10 dernières parties", ou donner le lien de la partie. Claude la récupère avec le pseudo du profil (domaine api.chess.com à autoriser, voir plus haut), avec la pendule et la vraie fin de partie.
+- **Analyser une partie chess.com ou Lichess**: demander par exemple "Analyse ma dernière partie", "ma dernière partie Lichess", "ma partie contre tel adversaire", "liste mes 10 dernières parties", ou donner le lien de la partie. Claude la récupère avec le pseudo du profil (domaine à autoriser, voir Installation, étape 4), avec la pendule et la vraie fin de partie. Sans précision, Claude prend la plateforme principale indiquée dans le profil.
 - **Analyser une autre partie**: coller le PGN (sur chess.com ou Lichess, bouton de partage puis PGN). Plusieurs PGN peuvent être envoyés dans la même conversation.
 - **Variantes**: désactivées par défaut. Les demander juste après avoir vu la page, dans la même conversation: Claude les ajoute en une étape. Dans une autre conversation, il faudrait refaire l'analyse.
 - **Suivi**: après chaque partie ou analyse, Claude met à jour les fiches joueur/. On peut les relire et les corriger à tout moment. L'index des parties ne garde que le mois en cours; les mois passés sont archivés dans joueur/historique-AAAA-MM.md.
