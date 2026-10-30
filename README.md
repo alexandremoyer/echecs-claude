@@ -26,7 +26,7 @@ Tout ce que Claude utilise au quotidien est stocké dans les documents du projet
 
 Dans tous ces cas, Claude clone le dépôt le temps de la conversation (le dépôt d'origine, ou le fork indiqué dans le profil du joueur). Le clone est effacé ensuite, les documents du projet restent.
 
-Parties chess.com: Claude peut récupérer une partie directement avec le pseudo du joueur (API publique de chess.com), pendule comprise, si le domaine api.chess.com est autorisé dans les réglages de claude.ai (Paramètres, Capacités, domaines autorisés). Sinon, on lui colle le PGN.
+Parties chess.com: Claude peut récupérer une partie directement avec le pseudo du joueur (API publique de chess.com), pendule comprise, si le domaine api.chess.com est autorisé dans les réglages de claude.ai (voir Installation, étape 4). Sinon, on lui colle le PGN.
 
 ## Installation
 1. Dans claude.ai, créer un projet (par exemple "Echecs").
@@ -40,7 +40,8 @@ Parties chess.com: Claude peut récupérer une partie directement avec le pseudo
    - **sans GitHub**: télécharger le dépôt (bouton "Code" puis "Download ZIP"), le joindre et demander "Enregistre chaque fichier de ce ZIP comme document du projet, au même chemin, sauf README.md, CLAUDE.md et .gitignore".
 
    Les fichiers doivent être des documents du projet écrits par Claude, et non de simples fichiers déposés dans les connaissances du projet: c'est ce qui permet à Claude de créer puis de mettre à jour les fiches du joueur.
-4. Dans une nouvelle conversation, écrire "Initialise mon profil". Claude crée les fiches joueur/ et pose quelques questions (niveau, classement, plateforme, notation, objectifs, fork éventuel du dépôt).
+4. Facultatif, pour que Claude récupère lui-même les parties chess.com: autoriser le domaine `api.chess.com`. Sur claude.ai, dans un navigateur: Paramètres, Capacités, liste des domaines autorisés, ajouter `api.chess.com`. Avec un abonnement individuel payant, chacun le fait lui-même; avec un abonnement Team ou Enterprise, c'est l'administrateur qui le fait (Paramètres de l'organisation, Capacités); avec l'offre gratuite, ce n'est pas possible. Sans ce réglage, on colle simplement le PGN de chaque partie.
+5. Dans une nouvelle conversation, écrire "Initialise mon profil". Claude crée les fiches joueur/ et pose quelques questions (niveau, classement, plateforme, notation, objectifs, fork éventuel du dépôt).
 
 ## Utilisation
 - **Jouer une partie**: ouvrir une nouvelle conversation dans le projet pour chaque partie. Claude demande la couleur (ou un tirage au sort), l'ouverture éventuelle et le thème éventuel.
