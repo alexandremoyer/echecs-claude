@@ -3,7 +3,7 @@
 ## A l'initialisation
 - Niveau: [A COMPLETER: débutant, intermédiaire, confirmé].
 - Classement: [A COMPLETER: Elo et plateforme, ou aucun classement], relevé le [A COMPLETER: JJ/MM/AAAA].
-- Plateforme en ligne, cadence habituelle et pseudo: [A COMPLETER: ex. chess.com, 10 minutes, pseudo, ou aucune].
+- Plateformes en ligne, cadence habituelle et pseudos: [A COMPLETER: ex. chess.com (plateforme principale) et lichess, 10 minutes, pseudo sur chaque plateforme, ou aucune]. Avec un pseudo et le domaine autorisé, Claude récupère les parties lui-même.
 - Notation algébrique: [A COMPLETER: acquise, en cours d'apprentissage, inconnue].
 - Objectifs: [A COMPLETER: ex. arrêter de laisser des pièces en prise, travailler une ouverture, atteindre un classement].
 - Dépôt des règles: [A COMPLETER: adresse du fork du joueur, ou "dépôt d'origine" s'il n'a pas de fork].

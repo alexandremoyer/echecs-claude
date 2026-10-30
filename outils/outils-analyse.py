@@ -5,8 +5,8 @@ Usage:
   python3 outils-analyse.py setup
   python3 outils-analyse.py analyse partie.json analyse.json
   python3 outils-analyse.py stats analyse.json [partie.json]
-  python3 outils-analyse.py parties PSEUDO [N]
-  python3 outils-analyse.py recuperer PSEUDO CHOIX [partie.json]
+  python3 outils-analyse.py parties PSEUDO [N] [--lichess]
+  python3 outils-analyse.py recuperer PSEUDO CHOIX [partie.json] [--lichess]
   python3 outils-analyse.py build partie.json analyse.json modele-analyse.html sortie.html
 Voir outils/rendu-analyse.md. Si le modèle contient __PIECES__, les pièces cburnett sont
 générées depuis chess.svg (python-chess) au lieu d'être recopiées en base64.
@@ -15,7 +15,8 @@ nulle (pat, répétition), elle vaut 0. La traduction en clair signale les promo
 La commande analyse affiche à la fin l'indicateur de triche (aussi disponible par stats).
 La commande build vérifie elle-même la syntaxe du script de la page avec node.
 Ouvertures: base chess-openings de lichess, clonée par setup dans ~/sf/ouvertures, reconnue par position.
-Parties chess.com: API publique (api.chess.com doit être autorisé). recuperer écrit partie.json avec les coups
+Parties en ligne: API publiques de chess.com (par défaut, api.chess.com doit être autorisé) et de lichess (--lichess,
+ou un lien lichess comme CHOIX; lichess.org doit être autorisé). recuperer écrit partie.json avec les coups
 en notation française, la pendule ([temps restant, temps du coup] en secondes) et les informations de la partie.
 """
 import base64, json, os, re, shutil, subprocess, sys
@@ -49,7 +50,7 @@ FAMILLES = {
     "Slav Defense": "Défense slave", "Semi-Slav Defense": "Défense semi-slave", "Dutch Defense": "Défense hollandaise", "Benoni Defense": "Défense Benoni",
     "Benko Gambit": "Gambit Benko", "Budapest Defense": "Gambit de Budapest", "London System": "Système de Londres", "English Opening": "Ouverture anglaise",
     "Réti Opening": "Ouverture Réti", "Zukertort Opening": "Ouverture Zukertort", "Bird Opening": "Ouverture Bird", "Nimzo-Larsen Attack": "Attaque Nimzo-Larsen",
-    "Polish Opening": "Ouverture polonaise", "Grob Opening": "Ouverture Grob", "Saragossa Opening": "Ouverture Saragosse", "Mieses Opening": "Ouverture Mieses",
+    "Polish Opening": "Ouverture polonaise", "Polish Defense": "Défense polonaise", "Grob Opening": "Ouverture Grob", "Saragossa Opening": "Ouverture Saragosse", "Mieses Opening": "Ouverture Mieses",
     "Van't Kruijs Opening": "Ouverture Van't Kruijs", "Amar Opening": "Ouverture Amar", "Ware Opening": "Ouverture Ware", "Sodium Attack": "Attaque Sodium",
 }
 MOTS = {"Advance": "d'avance", "Exchange": "d'échange", "Classical": "classique", "Modern": "moderne", "Normal": "normale",
@@ -91,25 +92,42 @@ def afficher_ouvertures(mv_list):
     for lab, o in zip(labels(mv_list), ouvertures(mv_list)):
         if o: print(f"- {lab}: {o}")
 UA = "echecs-claude (github.com/alexandremoyer/echecs-claude)"
-def api(url):
-    r = subprocess.run(["curl", "-sS", "-f", "-m", "30", "-A", UA, url], capture_output=True, text=True)
+def api(url, ndjson=False):
+    cmd = ["curl", "-sS", "-f", "-m", "60", "-A", UA] + (["-H", "Accept: application/x-ndjson"] if ndjson else []) + [url]
+    r = subprocess.run(cmd, capture_output=True, text=True); dom = url.split("/")[2]
     if r.returncode:
-        sys.exit(f"chess.com inaccessible ({r.stderr.strip()[:150]}). Autoriser api.chess.com dans les domaines autorisés de claude.ai, ou demander le PGN au joueur.")
-    return json.loads(r.stdout)
+        sys.exit(f"{dom} inaccessible ({r.stderr.strip()[:150]}). Autoriser {dom} dans les domaines autorisés de claude.ai, ou demander le PGN au joueur.")
+    return [json.loads(l) for l in r.stdout.splitlines() if l.strip()] if ndjson else json.loads(r.stdout)
 def parties_chesscom(pseudo, n):
     arch = api(f"https://api.chess.com/pub/player/{pseudo.lower()}/games/archives")["archives"]; out = []
     for u in reversed(arch):
         out += sorted(api(u)["games"], key=lambda g: g["end_time"], reverse=True)
         if len(out) >= n: break
     return out[:n]
+LI_FIN = {"mate": "checkmated", "resign": "resigned", "outoftime": "timeout", "timeout": "abandoned"}
+def parties_lichess(pseudo, n):
+    """Parties lichess converties au format des parties chess.com (champs utilisés par ligne_partie et recuperer)."""
+    out = []
+    for g in api(f"https://lichess.org/api/games/user/{pseudo}?max={n}&clocks=true&opening=true&pgnInJson=true", ndjson=True):
+        st, win, ck = g.get("status"), g.get("winner"), g.get("clock")
+        x = {"pgn": g.get("pgn", ""), "url": "https://lichess.org/" + g["id"], "end_time": g.get("lastMoveAt", g.get("createdAt", 0)) // 1000,
+             "time_class": g.get("speed"), "time_control": f"{ck['initial']}+{ck['increment']}" if ck else "-", "eco": g.get("opening", {}).get("name", "")}
+        for c in ("white", "black"):
+            pl = g["players"][c]
+            res = "win" if win == c else (LI_FIN.get(st, st) if win else st)
+            x[c] = {"username": pl.get("user", {}).get("name", "anonyme"), "rating": pl.get("rating", "?"), "result": res}
+        out.append(x)
+    return out
+def parties_en_ligne(pseudo, n, lichess=False): return parties_lichess(pseudo, n) if lichess else parties_chesscom(pseudo, n)
 FIN = {"checkmated": "par mat", "resigned": "par abandon", "timeout": "au temps", "abandoned": "par abandon (déconnexion)"}
 NUL = {"agreed": "d'un commun accord", "repetition": "par répétition", "stalemate": "par pat", "insufficient": "par matériel insuffisant",
-       "50move": "par la règle des 50 coups", "timevsinsufficient": "temps contre matériel insuffisant"}
+       "50move": "par la règle des 50 coups", "timevsinsufficient": "temps contre matériel insuffisant", "draw": ""}
 def resultat(g, pseudo):
     moi = "white" if g["white"]["username"].lower() == pseudo.lower() else "black"; adv = "black" if moi == "white" else "white"
     r, ra = g[moi]["result"], g[adv]["result"]
     if r == "win": return moi, adv, ("victoire " + FIN.get(ra, "")).strip()
-    if r in NUL: return moi, adv, "nulle " + NUL[r]
+    if r in ("aborted", "noStart"): return moi, adv, "partie annulée"
+    if r in NUL: return moi, adv, ("nulle " + NUL[r]).strip()
     return moi, adv, ("défaite " + FIN.get(r, "")).strip()
 def ligne_partie(i, g, pseudo):
     from datetime import datetime
@@ -118,17 +136,17 @@ def ligne_partie(i, g, pseudo):
     moi, adv, res = resultat(g, pseudo); nb = max([int(x) for x in re.findall(r"(\d+)\. ", g.get("pgn", ""))] or [0])
     ouv = g.get("eco", "").rsplit("/", 1)[-1].replace("-", " ")
     return f"{i}. {d} | {g.get('time_class')} {g.get('time_control')} | {'Blancs' if moi == 'white' else 'Noirs'} contre {g[adv]['username']} ({g[adv]['rating']}) | {res} | {nb} coups | {ouv}"
-def lister(pseudo, n=10):
-    for i, g in enumerate(parties_chesscom(pseudo, n), 1): print(ligne_partie(i, g, pseudo))
+def lister(pseudo, n=10, lichess=False):
+    for i, g in enumerate(parties_en_ligne(pseudo, n, lichess), 1): print(ligne_partie(i, g, pseudo))
 def mmss(s): s = int(round(s)); return f"{s // 60}:{s % 60:02d}"
 def duree(s): return f"{s:.0f} s" if s < 60 else mmss(s)
-def recuperer(pseudo, choix, out="partie.json"):
+def recuperer(pseudo, choix, out="partie.json", lichess=False):
     import chess.pgn, io
-    games = parties_chesscom(pseudo, 300)
+    lichess = lichess or "lichess.org" in choix; games = parties_en_ligne(pseudo, 300, lichess)
     if choix.isdigit() and len(choix) < 5: g = games[int(choix) - 1]
     else:
-        c = choix.lower().rstrip("/"); cid = c.split("/")[-1]
-        cands = [x for x in games if x["url"].rstrip("/").endswith("/" + cid) or c in (x["white"]["username"].lower(), x["black"]["username"].lower())]
+        c = re.sub(r"/(white|black)$", "", choix.lower().rstrip("/")); cid = c.split("/")[-1]
+        cands = [x for x in games if x["url"].lower().rstrip("/").endswith("/" + cid) or c in (x["white"]["username"].lower(), x["black"]["username"].lower())]
         if not cands: sys.exit(f"partie introuvable parmi les {len(games)} dernières: {choix}")
         g = cands[0]
     game = chess.pgn.read_game(io.StringIO(g["pgn"])); tc = game.headers.get("TimeControl", "-")
@@ -140,8 +158,8 @@ def recuperer(pseudo, choix, out="partie.json"):
         if c is not None and last: pend.append([round(c, 1), round(max(0, last[side] - c + float(inc)), 1)]); last[side] = c
         else: pend.append(None)
     moi, adv, res = resultat(g, pseudo); h = game.headers
-    infos = (f"{h.get('White')} ({h.get('WhiteElo')}) contre {h.get('Black')} ({h.get('BlackElo')}), {h.get('Date', '').replace('.', '/')}, "
-             f"cadence {tc}, {pseudo} avec les {'Blancs' if moi == 'white' else 'Noirs'}, {res}. {h.get('Termination', '')}. {g['url']}")
+    infos = (f"{'lichess' if lichess else 'chess.com'}: {h.get('White')} ({h.get('WhiteElo')}) contre {h.get('Black')} ({h.get('BlackElo')}), {h.get('Date', '').replace('.', '/')}, "
+             f"cadence {tc}, {pseudo} avec les {'Blancs' if moi == 'white' else 'Noirs'}, {res}. " + (h.get('Termination', '') + ". " if h.get('Termination') not in (None, '', 'Normal') else "") + g['url'])
     p = {"coups": " ".join(toks), "flip": moi == "black", "pendule": pend if any(pend) else None, "infos": infos}
     json.dump(p, open(out, "w"), ensure_ascii=False, indent=1)
     print(infos); print(p["coups"])
@@ -302,6 +320,6 @@ def check_js(h):
         sys.exit("erreur de syntaxe dans le script de la page: " + " | ".join(msg))
     print("script de la page: syntaxe ok")
 if __name__ == "__main__":
-    a = sys.argv[1:]
-    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1], a[2] if len(a) > 2 else None), "parties": lambda: lister(a[1], int(a[2]) if len(a) > 2 else 10),
-     "recuperer": lambda: recuperer(a[1], a[2], a[3] if len(a) > 3 else "partie.json"), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])), "build": lambda: build(*a[1:5])}[a[0]]()
+    a = sys.argv[1:]; LI = "--lichess" in a; a = [x for x in a if x != "--lichess"]
+    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1], a[2] if len(a) > 2 else None), "parties": lambda: lister(a[1], int(a[2]) if len(a) > 2 else 10, LI),
+     "recuperer": lambda: recuperer(a[1], a[2], a[3] if len(a) > 3 else "partie.json", LI), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])), "build": lambda: build(*a[1:5])}[a[0]]()
