@@ -2,6 +2,7 @@
 """Outils pour l'analyse des parties d'échecs (page interactive coup par coup).
 
 Usage:
+  python3 outils-analyse.py analyser PSEUDO CHOIX [--lichess]   (tout en une commande, voir plus bas)
   python3 outils-analyse.py setup
   python3 outils-analyse.py analyse partie.json analyse.json
   python3 outils-analyse.py stats analyse.json [partie.json]
@@ -13,6 +14,11 @@ générées depuis chess.svg (python-chess) au lieu d'être recopiées en base64
 Après un coup qui mate, l'évaluation vaut +100 ou -100 sans appel au moteur; après une
 nulle (pat, répétition), elle vaut 0. La traduction en clair signale les promotions.
 La commande analyse affiche à la fin l'indicateur de triche (aussi disponible par stats).
+analyser = setup si besoin, puis recuperer (partie.json) et analyse (analyse.json), avec un budget de temps
+(variable BUDGET, 90 s par défaut) pour tenir sous le délai d'une commande: plus besoin d'arrière-plan.
+L'analyse ne lance le moteur qu'une fois par position (l'éval après un coup est celle de la position suivante).
+La commande build complète elle-même les champs facultatifs absents (titre, flip, depart, entete,
+remarques, bilan, variantes, commentaires).
 La commande build vérifie elle-même la syntaxe du script de la page avec node.
 Ouvertures: base chess-openings de lichess, clonée par setup dans ~/sf/ouvertures, reconnue par position.
 Parties en ligne: API publiques de chess.com (par défaut, api.chess.com doit être autorisé) et de lichess (--lichess,
@@ -186,14 +192,17 @@ def analyse(pj, out):
     p = json.load(open(pj)); b = chess.Board(); eng = chess.engine.SimpleEngine.popen_uci(SF)
     res = []
     def sc(x): return x["score"].white().score(mate_score=10000)
-    D = int(os.environ.get("DEPTH","20"))
-    for k, m in enumerate(moves_of(p["coups"])):
-        info = eng.analyse(b, chess.engine.Limit(depth=D), multipv=3)
+    D = int(os.environ.get("DEPTH", "20")); mv_list = moves_of(p["coups"])
+    eng.configure({"Threads": os.cpu_count() or 1, "Hash": 128})
+    T = float(os.environ.get("BUDGET", "90")) / (len(mv_list) + 1)
+    def top(bd): return eng.analyse(bd, chess.engine.Limit(depth=D, time=T), multipv=3)
+    info = top(b)
+    for k, m in enumerate(mv_list):
         best = [[en2fr(b.san(x["pv"][0])), sc(x) / 100, " ".join(en2fr(s) for s in b.variation_san(x["pv"][:8]).split())] for x in info]
         mv = b.parse_san(fr2en(m)); fen = b.fen(); b.push(mv)
         if b.is_checkmate(): after = 10000 if b.turn == chess.BLACK else -10000
         elif b.is_game_over(): after = 0
-        else: after = sc(eng.analyse(b, chess.engine.Limit(depth=D)))
+        else: info = top(b); after = sc(info[0])
         res.append(dict(ply=k, san=m, fen_before=fen, after=after / 100, best=best))
         print(k, m, "après", after / 100, "| meilleurs:", best, flush=True)
     eng.quit(); json.dump(res, open(out, "w"), ensure_ascii=False, indent=0)
@@ -281,6 +290,8 @@ def commentaires(p, mv_list):
 def build(pj, aj, tpl, out):
     import chess
     p = json.load(open(pj)); an = json.load(open(aj)); mv_list = moves_of(p["coups"])
+    for k, v in {"titre": "Analyse de la partie", "flip": False, "depart": "Position de départ.", "entete": "", "remarques": "", "bilan": "", "variantes": [], "commentaires": {}}.items():
+        if p.get(k) is None: p[k] = v
     assert len(mv_list) == len(an), "analyse.json ne correspond pas aux coups"
     com = commentaires(p, mv_list); ops = ouvertures(mv_list); pend = p.get("pendule") or []
     b = chess.Board(); PL = [{"fen": b.board_fen(), "eval": 0.3, "mate": None}]; befores = []
@@ -310,6 +321,11 @@ def build(pj, aj, tpl, out):
     h = h.replace("__FLIP__", "true" if p["flip"] else "false").replace("__DEPART__", json.dumps(p["depart"], ensure_ascii=False))
     if "__PIECES__" in h: h = h.replace("__PIECES__", pieces_js())
     open(out, "w").write(h); check_js(h); print("ok", out, len(h))
+def analyser(pseudo, choix, lichess=False):
+    import time; t0 = time.time()
+    if not os.path.exists(SF): setup()
+    if "BUDGET" not in os.environ: os.environ["BUDGET"] = str(max(30, 95 - (time.time() - t0)))
+    recuperer(pseudo, choix, "partie.json", lichess); analyse("partie.json", "analyse.json")
 def check_js(h):
     node = shutil.which("node")
     if not node: print("attention: node absent, syntaxe du script non vérifiée"); return
@@ -321,5 +337,5 @@ def check_js(h):
     print("script de la page: syntaxe ok")
 if __name__ == "__main__":
     a = sys.argv[1:]; LI = "--lichess" in a; a = [x for x in a if x != "--lichess"]
-    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1], a[2] if len(a) > 2 else None), "parties": lambda: lister(a[1], int(a[2]) if len(a) > 2 else 10, LI),
+    {"analyser": lambda: analyser(a[1], a[2], LI), "setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1], a[2] if len(a) > 2 else None), "parties": lambda: lister(a[1], int(a[2]) if len(a) > 2 else 10, LI),
      "recuperer": lambda: recuperer(a[1], a[2], a[3] if len(a) > 3 else "partie.json", LI), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])), "build": lambda: build(*a[1:5])}[a[0]]()
