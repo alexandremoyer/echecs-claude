@@ -26,6 +26,8 @@ Tout ce que Claude utilise au quotidien est stocké dans les documents du projet
 
 Dans tous ces cas, Claude clone le dépôt le temps de la conversation (le dépôt d'origine, ou le fork indiqué dans le profil du joueur). Le clone est effacé ensuite, les documents du projet restent.
 
+Parties chess.com: Claude peut récupérer une partie directement avec le pseudo du joueur (API publique de chess.com), pendule comprise, si le domaine api.chess.com est autorisé dans les réglages de claude.ai (Paramètres, Capacités, domaines autorisés). Sinon, on lui colle le PGN.
+
 ## Installation
 1. Dans claude.ai, créer un projet (par exemple "Echecs").
 2. Dans les instructions du projet, coller:

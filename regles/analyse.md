@@ -2,6 +2,10 @@
 
 S'applique aux parties jouées avec Claude comme aux parties jouées en ligne et envoyées en PGN.
 
+## Parties chess.com
+- Si le joueur ne donne pas de PGN, récupérer la partie avec son pseudo (voir outils/rendu-analyse.md, commandes parties et recuperer). Si api.chess.com est inaccessible, demander le PGN.
+- Quand la pendule est connue, la commenter: temps restant, coups joués trop vite ou trop lentement, erreurs jouées en quelques secondes. Le bilan dit si la pendule a joué un rôle.
+
 ## Plusieurs parties envoyées d'un coup
 D'abord un tri rapide au moteur (résultat, coup qui fait basculer chaque partie, lien avec le thème en cours), puis une page d'analyse par partie.
 

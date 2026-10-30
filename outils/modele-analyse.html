@@ -204,6 +204,7 @@ button svg { width: 22px; height: 22px; }
         <div class="mvhead"><span class="mvname" id="mvName"></span><span class="tag" id="mvTag"></span></div>
         <p class="clair" id="mvClair"></p>
         <p class="opening" id="mvOpening"></p>
+        <p class="opening" id="mvClock"></p>
         <p class="comment" id="mvText"></p>
         <p class="bestline" id="mvBest"></p>
       </div>
@@ -364,6 +365,9 @@ function renderCard() {
   const op = document.getElementById("mvOpening");
   op.textContent = cur > 0 && p.opening ? p.opening : "";
   op.hidden = !op.textContent;
+  const ck = document.getElementById("mvClock");
+  ck.textContent = cur > 0 && p.clock ? p.clock : "";
+  ck.hidden = !ck.textContent;
   if (cur === 0) {
     name.textContent = "Départ"; tag.hidden = true;
     clair.textContent = DEPART;
