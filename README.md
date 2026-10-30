@@ -69,4 +69,4 @@ Utilisateurs de Claude Code: le fichier CLAUDE.md permet de travailler directeme
 ## Licence
 Ce dépôt est distribué sous licence MIT (voir le fichier LICENSE).
 
-Les outils téléchargés à l'installation gardent leur propre licence et ne font pas partie du dépôt: python-chess et Stockfish (GPL-3.0). Les pièces cburnett, générées depuis python-chess au moment de construire une page d'analyse, restent sous la licence de leur auteur.
+Les outils téléchargés à l'installation gardent leur propre licence et ne font pas partie du dépôt: python-chess et Stockfish (GPL-3.0), et la base d'ouvertures chess-openings de lichess (licence dans son fichier COPYING.txt). Les pièces cburnett, générées depuis python-chess au moment de construire une page d'analyse, restent sous la licence de leur auteur.
