@@ -4,13 +4,16 @@
 Usage:
   python3 outils-analyse.py setup
   python3 outils-analyse.py analyse partie.json analyse.json
+  python3 outils-analyse.py stats analyse.json
   python3 outils-analyse.py build partie.json analyse.json modele-analyse.html sortie.html
 Voir outils/rendu-analyse.md. Si le modèle contient __PIECES__, les pièces cburnett sont
 générées depuis chess.svg (python-chess) au lieu d'être recopiées en base64.
 Après un coup qui mate, l'évaluation vaut +100 ou -100 sans appel au moteur; après une
 nulle (pat, répétition), elle vaut 0. La traduction en clair signale les promotions.
+La commande analyse affiche à la fin l'indicateur de triche (aussi disponible par stats).
+La commande build vérifie elle-même la syntaxe du script de la page avec node.
 """
-import base64, json, os, re, subprocess, sys
+import base64, json, os, re, shutil, subprocess, sys
 HOME = os.path.expanduser("~")
 SF = os.path.join(HOME, "sf", "stockfish", "stockfish-ubuntu-x86-64-avx2")
 FR2EN = {"R": "K", "D": "Q", "T": "R", "F": "B", "C": "N"}
@@ -46,6 +49,21 @@ def analyse(pj, out):
         res.append(dict(ply=k, san=m, fen_before=fen, after=after / 100, best=best))
         print(k, m, "après", after / 100, "| meilleurs:", best, flush=True)
     eng.quit(); json.dump(res, open(out, "w"), ensure_ascii=False, indent=0)
+    stats(out)
+def stats(aj):
+    """Indicateur de triche: perte moyenne par coup (plafonnée à 10 points), coups au niveau
+    du moteur, erreurs de plus d'un point, pour chaque camp, à partir du 3e coup."""
+    an = json.load(open(aj)); print("Indicateur de triche (à partir du 3e coup):")
+    for side, name in ((0, "Blancs"), (1, "Noirs")):
+        losses, top, errs = [], 0, []
+        for a in an:
+            if a["ply"] % 2 != side or a["ply"] < 4 or not a["best"]: continue
+            l = a["best"][0][1] - a["after"]
+            l = max(0, min(10, l if side == 0 else -l)); losses.append(l)
+            if a["san"].rstrip("+#") == a["best"][0][0].rstrip("+#") or l <= 0.1: top += 1
+            if l > 1: errs.append(f"{a['ply'] // 2 + 1}{'.' if side == 0 else '...'}{a['san']} ({l:.1f})")
+        if not losses: continue
+        print(f"- {name}: {round(100 * sum(losses) / len(losses))} centièmes par coup, {top} coups sur {len(losses)} au niveau du moteur, {len(errs)} erreurs de plus d'un point: {', '.join(errs) or 'aucune'}")
 def clair(b, mv):
     import chess
     NAME = {chess.PAWN: ("pion", "m"), chess.KNIGHT: ("cavalier", "m"), chess.BISHOP: ("fou", "m"),
@@ -107,7 +125,16 @@ def build(pj, aj, tpl, out):
     h = h.replace("__PLIES__", json.dumps(PL, ensure_ascii=False)).replace("__VARS__", json.dumps(V, ensure_ascii=False))
     h = h.replace("__FLIP__", "true" if p["flip"] else "false").replace("__DEPART__", json.dumps(p["depart"], ensure_ascii=False))
     if "__PIECES__" in h: h = h.replace("__PIECES__", pieces_js())
-    open(out, "w").write(h); print("ok", out, len(h))
+    open(out, "w").write(h); check_js(h); print("ok", out, len(h))
+def check_js(h):
+    node = shutil.which("node")
+    if not node: print("attention: node absent, syntaxe du script non vérifiée"); return
+    js = h[h.rindex("<script>") + 8:h.rindex("</script>")]
+    r = subprocess.run([node, "-e", "new Function(require('fs').readFileSync(0, 'utf8'))"], input=js, text=True, capture_output=True)
+    if r.returncode:
+        msg = [l for l in r.stderr.splitlines() if l.strip() and len(l) < 200][:4]
+        sys.exit("erreur de syntaxe dans le script de la page: " + " | ".join(msg))
+    print("script de la page: syntaxe ok")
 if __name__ == "__main__":
     a = sys.argv[1:]
-    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "build": lambda: build(*a[1:5])}[a[0]]()
+    {"setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1]), "build": lambda: build(*a[1:5])}[a[0]]()

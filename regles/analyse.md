@@ -24,3 +24,6 @@ D'abord un tri rapide au moteur (résultat, coup qui fait basculer chaque partie
 - Page d'analyse interactive, construite selon outils/rendu-analyse.md.
 - Explications simples et concrètes, sans théorie inutile, en nommant les pièces et les cases.
 - Echiquier retourné quand le joueur a les Noirs.
+
+## Organisation
+- Travail en étapes groupées, sans liste de tâches: voir outils/rendu-analyse.md, section "Déroulement en étapes groupées".
