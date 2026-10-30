@@ -17,7 +17,7 @@ D'abord un tri rapide au moteur (résultat, coup qui fait basculer chaque partie
 - Pour chaque coup, une ligne systématique "Meilleur coup selon le moteur: ...".
 - Quand un coup est une erreur, proposer la meilleure alternative et l'expliquer.
 - Répondre à chaque remarque faite par le joueur pendant la partie, en citant la remarque.
-- Section "Variantes expliquées" pour rejouer les lignes proposées coup par coup.
+- Variantes expliquées (lignes à rejouer coup par coup): désactivées par défaut. Seulement si le joueur les demande, de préférence dans la même conversation (ajout peu coûteux, voir outils/rendu-analyse.md).
 - Bilan en fin de page: points positifs, points à retenir, une leçon clé.
 
 ## Forme
