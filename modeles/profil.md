@@ -7,6 +7,7 @@
 - Notation algébrique: [A COMPLETER: acquise, en cours d'apprentissage, inconnue].
 - Objectifs: [A COMPLETER: ex. arrêter de laisser des pièces en prise, travailler une ouverture, atteindre un classement].
 - Dépôt des règles: [A COMPLETER: adresse du fork du joueur, ou "dépôt d'origine" s'il n'a pas de fork].
+- Tutoiement ou vouvoiement: [A COMPLETER].
 
 ## Evolution du classement
 (à compléter au fil des parties: date, classement, partie concernée)
