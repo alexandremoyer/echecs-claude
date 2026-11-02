@@ -2,24 +2,25 @@
 """Outils pour l'analyse des parties d'échecs (page interactive coup par coup).
 
 Usage:
-  python3 outils-analyse.py analyser PSEUDO CHOIX [--lichess]   (tout en une commande, voir plus bas)
-  python3 outils-analyse.py setup
-  python3 outils-analyse.py analyse partie.json analyse.json
-  python3 outils-analyse.py stats analyse.json [partie.json]
-  python3 outils-analyse.py parties PSEUDO [N] [--lichess]
-  python3 outils-analyse.py recuperer PSEUDO CHOIX [partie.json] [--lichess]
-  python3 outils-analyse.py build partie.json analyse.json modele-analyse.html sortie.html
-Voir outils/rendu-analyse.md. Si le modèle contient __PIECES__, les pièces cburnett sont
-générées depuis chess.svg (python-chess) au lieu d'être recopiées en base64.
-Après un coup qui mate, l'évaluation vaut +100 ou -100 sans appel au moteur; après une
-nulle (pat, répétition), elle vaut 0. La traduction en clair signale les promotions.
-La commande analyse affiche à la fin l'indicateur de triche (aussi disponible par stats).
-analyser = setup si besoin, puis recuperer (partie.json) et analyse (analyse.json), avec un budget de temps
-(variable BUDGET, 90 s par défaut) pour tenir sous le délai d'une commande: plus besoin d'arrière-plan.
-L'analyse ne lance le moteur qu'une fois par position (l'éval après un coup est celle de la position suivante).
-La commande build complète elle-même les champs facultatifs absents (titre, flip, depart, entete,
-remarques, bilan, variantes, commentaires).
-La commande build vérifie elle-même la syntaxe du script de la page avec node.
+  python3 outils-analyse.py analyser PSEUDO CHOIX [--lichess]      partie en ligne: tout en une commande
+  python3 outils-analyse.py analyser [PSEUDO|noirs] --pgn fichier.pgn   PGN collé par le joueur: idem
+  python3 outils-analyse.py verifier partie.json SPEC...            vérifications au moteur en une commande
+  python3 outils-analyse.py build partie.json analyse.json modele-analyse.html page.html
+  (aussi: setup, parties PSEUDO [N], recuperer PSEUDO CHOIX, importer fichier.pgn [PSEUDO], analyse, stats, ouvertures, fiche)
+Voir outils/rendu-analyse.md.
+analyser = setup si besoin, puis recuperer ou importer (partie.json, avec meta: joueurs, classements, date,
+cadence, couleur, résultat) et analyse (analyse.json), avec un budget de temps (BUDGET, 90 s par défaut)
+pour tenir sous le délai d'une commande. Affiche: infos, pendule, analyse coup par coup (mats en clair),
+indicateur de triche, étiquettes automatiques, mats manqués, ouvertures, puis le squelette des champs à
+ajouter à partie.json avant build.
+verifier: SPEC = COUP (position avant ce coup, ex. 9...Te8), +COUP (après), avec en option :c1,c2 pour
+évaluer aussi des coups précis en français (ex. 9...Te8:exd4,Te8). Temps par position: variable T (4 s).
+build: fusionne d'abord complement.json (les champs rédigés par Claude) dans partie.json s'il existe, écrit
+la page (champs facultatifs complétés, syntaxe du script vérifiée avec node), puis, si
+partie.json contient numero, la fiche joueur (fiche.md, d'après lecons, mots_cles, meta, analyse) et la
+ligne d'index (index.txt).
+Après un coup qui mate, l'évaluation vaut +100 ou -100 sans appel au moteur; après une nulle, 0.
+Le moteur n'est lancé qu'une fois par position (l'éval après un coup est celle de la position suivante).
 Ouvertures: base chess-openings de lichess, clonée par setup dans ~/sf/ouvertures, reconnue par position.
 Parties en ligne: API publiques de chess.com (par défaut, api.chess.com doit être autorisé) et de lichess (--lichess,
 ou un lien lichess comme CHOIX; lichess.org doit être autorisé). recuperer écrit partie.json avec les coups
@@ -155,7 +156,24 @@ def recuperer(pseudo, choix, out="partie.json", lichess=False):
         cands = [x for x in games if x["url"].lower().rstrip("/").endswith("/" + cid) or c in (x["white"]["username"].lower(), x["black"]["username"].lower())]
         if not cands: sys.exit(f"partie introuvable parmi les {len(games)} dernières: {choix}")
         g = cands[0]
-    game = chess.pgn.read_game(io.StringIO(g["pgn"])); tc = game.headers.get("TimeControl", "-")
+    moi, adv, res = resultat(g, pseudo)
+    p = partie_depuis_pgn(g["pgn"], moi == "black", "lichess" if lichess else "chess.com", res, g["url"])
+    json.dump(p, open(out, "w"), ensure_ascii=False, indent=1)
+    print(p["infos"]); print(p["coups"])
+    if p["pendule"]: resume_pendule(moves_of(p["coups"]), p["pendule"])
+def cadence_txt(tc):
+    """'600' -> '10 min', '600+5' -> '10 min + 5 s', '180' -> '3 min', sinon tel quel."""
+    m = re.match(r"^(\d+)(?:\+(\d+))?$", tc or "")
+    if not m: return tc or "?"
+    s = int(m.group(1)); base = f"{s // 60} min" if s % 60 == 0 else f"{s} s"
+    return base + (f" + {m.group(2)} s" if m.group(2) and m.group(2) != "0" else "")
+def date_fr(d):
+    m = re.match(r"(\d{4})[./-](\d\d)[./-](\d\d)", d or "")
+    return f"{m.group(3)}/{m.group(2)}/{m.group(1)}" if m else (d or "?")
+def partie_depuis_pgn(pgn, noirs, plateforme, res=None, url=""):
+    """partie.json (coups en français, flip, pendule, infos, meta) à partir d'un PGN (texte)."""
+    import chess.pgn, io
+    game = chess.pgn.read_game(io.StringIO(pgn)); h = game.headers; tc = h.get("TimeControl", "-")
     base, inc = (tc.split("+") + ["0"])[:2] if tc[:1].isdigit() and "/" not in tc else (None, "0")
     b = game.board(); toks, pend = [], []; last = [float(base)] * 2 if base else None
     for node in game.mainline():
@@ -163,12 +181,25 @@ def recuperer(pseudo, choix, out="partie.json", lichess=False):
         toks.append(f"{b.fullmove_number}.{san}" if b.turn else san); b.push(node.move); c = node.clock()
         if c is not None and last: pend.append([round(c, 1), round(max(0, last[side] - c + float(inc)), 1)]); last[side] = c
         else: pend.append(None)
-    moi, adv, res = resultat(g, pseudo); h = game.headers
-    infos = (f"{'lichess' if lichess else 'chess.com'}: {h.get('White')} ({h.get('WhiteElo')}) contre {h.get('Black')} ({h.get('BlackElo')}), {h.get('Date', '').replace('.', '/')}, "
-             f"cadence {tc}, {pseudo} avec les {'Blancs' if moi == 'white' else 'Noirs'}, {res}. " + (h.get('Termination', '') + ". " if h.get('Termination') not in (None, '', 'Normal') else "") + g['url'])
-    p = {"coups": " ".join(toks), "flip": moi == "black", "pendule": pend if any(pend) else None, "infos": infos}
-    json.dump(p, open(out, "w"), ensure_ascii=False, indent=1)
-    print(infos); print(p["coups"])
+    if res is None:
+        r = h.get("Result", "*"); gagne = {"1-0": not noirs, "0-1": noirs}.get(r)
+        fin = "par mat" if b.is_checkmate() else ("par pat" if b.is_stalemate() else "")
+        res = ("nulle " + fin) if r == "1/2-1/2" else ("victoire " + fin) if gagne else ("défaite " + fin) if gagne is False else "résultat inconnu"
+        res = res.strip()
+    nb = (len(toks) + 1) // 2
+    meta = {"plateforme": plateforme, "blancs": h.get("White", "?"), "elo_blancs": h.get("WhiteElo", "?"), "noirs": h.get("Black", "?"), "elo_noirs": h.get("BlackElo", "?"),
+            "date": date_fr(h.get("Date")), "cadence": cadence_txt(tc), "couleur": "Noirs" if noirs else "Blancs", "resultat": res, "nb_coups": nb, "url": url}
+    infos = (f"{plateforme}: {meta['blancs']} ({meta['elo_blancs']}) contre {meta['noirs']} ({meta['elo_noirs']}), {meta['date']}, cadence {meta['cadence']}, "
+             f"joueur avec les {meta['couleur']}, {res} au {nb}e coup. " + (h.get('Termination', '') + ". " if h.get('Termination') not in (None, '', 'Normal', '*') else "") + url).strip()
+    return {"coups": " ".join(toks), "flip": noirs, "pendule": pend if any(pend) else None, "infos": infos, "meta": meta}
+def importer_pgn(path, pseudo=None, out="partie.json"):
+    """PGN collé par le joueur: écrit partie.json. Le pseudo (ou 'noirs') donne la couleur du joueur; sinon Blancs."""
+    import chess.pgn, io
+    txt = open(path).read(); h = chess.pgn.read_game(io.StringIO(txt)).headers
+    noirs = (pseudo or "").lower() in ("noirs", "noir", "black") or (pseudo is not None and h.get("Black", "").lower() == pseudo.lower())
+    plateforme = "avec Claude" if "claude" in (h.get("White", "") + h.get("Black", "")).lower() else {"chess.com": "chess.com", "lichess": "lichess"}.get(h.get("Site", "").lower().replace("https://", "").split("/")[0].replace("www.", ""), h.get("Site", "PGN") or "PGN")
+    p = partie_depuis_pgn(txt, noirs, plateforme, url=h.get("Link", ""))
+    json.dump(p, open(out, "w"), ensure_ascii=False, indent=1); print(p["infos"]); print(p["coups"])
     if p["pendule"]: resume_pendule(moves_of(p["coups"]), p["pendule"])
 def resume_pendule(mv_list, pend):
     print("Pendule:"); labs = labels(mv_list)
@@ -182,8 +213,10 @@ def fr2en(san):
     san = re.sub(r"=([DTFC])", lambda m: "=" + FR2EN[m.group(1)], san)
     return FR2EN[san[0]] + san[1:] if san[0] in FR2EN else san
 def en2fr(san):
+    """Coup en notation anglaise vers le français; accepte un préfixe de numéro (15.Nf3, 15...Nf6)."""
+    pre, san = re.match(r"^(\d+\.(?:\.\.)?)?(.*)$", san).groups()
     san = re.sub(r"=([QRBN])", lambda m: "=" + EN2FR[m.group(1)], san)
-    return EN2FR[san[0]] + san[1:] if san[0] in EN2FR else san
+    return (pre or "") + (EN2FR[san[0]] + san[1:] if san and san[0] in EN2FR else san)
 def moves_of(txt):
     toks = [t for t in re.sub(r"\d+\.(\.\.)?", " ", txt).split() if t not in ("1-0", "0-1", "1/2-1/2", "*")]
     return [t.rstrip("!?") for t in toks]
@@ -196,17 +229,51 @@ def analyse(pj, out):
     eng.configure({"Threads": os.cpu_count() or 1, "Hash": 128})
     T = float(os.environ.get("BUDGET", "90")) / (len(mv_list) + 1)
     def top(bd): return eng.analyse(bd, chess.engine.Limit(depth=D, time=T), multipv=3)
-    info = top(b)
+    info = top(b); labs = labels(mv_list)
     for k, m in enumerate(mv_list):
-        best = [[en2fr(b.san(x["pv"][0])), sc(x) / 100, " ".join(en2fr(s) for s in b.variation_san(x["pv"][:8]).split())] for x in info]
+        best = [[en2fr(b.san(x["pv"][0])), sc(x) / 100, " ".join(en2fr(s) for s in b.variation_san(x["pv"][:6]).split()), x["score"].white().mate()] for x in info]
         mv = b.parse_san(fr2en(m)); fen = b.fen(); b.push(mv)
-        if b.is_checkmate(): after = 10000 if b.turn == chess.BLACK else -10000
-        elif b.is_game_over(): after = 0
-        else: info = top(b); after = sc(info[0])
-        res.append(dict(ply=k, san=m, fen_before=fen, after=after / 100, best=best))
-        print(k, m, "après", after / 100, "| meilleurs:", best, flush=True)
+        if b.is_checkmate(): after = 10000 if b.turn == chess.BLACK else -10000; mate = 0
+        elif b.is_game_over(): after = 0; mate = None
+        else: info = top(b); after = sc(info[0]); mate = info[0]["score"].white().mate()
+        res.append(dict(ply=k, san=m, fen_before=fen, after=after / 100, best=best, mate=mate))
+        print(f"{labs[k]} après {texte_eval(after / 100, mate)} | meilleurs: " + " / ".join(f"{s} ({texte_eval(e, mt)}) {pv}" for s, e, pv, mt in best), flush=True)
     eng.quit(); json.dump(res, open(out, "w"), ensure_ascii=False, indent=0)
     stats(out, pj); afficher_ouvertures(moves_of(p["coups"]))
+def texte_eval(e, mate=None):
+    """Evaluation lisible: '+1.2', ou 'mat en 3 pour les Blancs' (mat=0: mat sur l'échiquier)."""
+    if mate is None: return f"{e:+.2f}"
+    if mate == 0: return "mat"
+    return f"mat en {abs(mate)} pour les {'Blancs' if mate > 0 else 'Noirs'}"
+def position_avant(mv_list, spec):
+    """Position désignée par un coup de la partie en français ('9...Te8': avant ce coup; '+9...Te8': après)."""
+    import chess
+    apres = spec.startswith("+"); key = norm(spec.lstrip("+")); b = chess.Board()
+    for lab, m in zip(labels(mv_list), mv_list):
+        if norm(lab) == key:
+            if apres: b.push(b.parse_san(fr2en(m)))
+            return b, ("après " if apres else "avant ") + lab
+        b.push(b.parse_san(fr2en(m)))
+    sys.exit(f"coup inconnu dans la partie: {spec}")
+def verifier(pj, specs):
+    """Vérifications au moteur en une commande. Chaque spec: COUP (position avant ce coup), +COUP (après),
+    avec en option :c1,c2 pour évaluer aussi des coups précis (notation française). Ex: 9...Te8:exd4,Te8 +14.Fd2"""
+    import chess, chess.engine, time
+    p = json.load(open(pj)); mv_list = moves_of(p["coups"]); eng = chess.engine.SimpleEngine.popen_uci(SF)
+    eng.configure({"Threads": os.cpu_count() or 1, "Hash": 128})
+    T = min(float(os.environ.get("T", "4")), float(os.environ.get("BUDGET", "90")) / max(1, len(specs) * 2))
+    def ligne(x, bd): return f"  {texte_eval(sc(x) / 100, x['score'].white().mate())}: " + " ".join(en2fr(s) for s in bd.variation_san(x["pv"][:10]).split())
+    def sc(x): return x["score"].white().score(mate_score=10000)
+    for spec in specs:
+        pos, _, cands = spec.partition(":"); bd, lab = position_avant(mv_list, pos)
+        print(f"== {lab}, trait aux {'Blancs' if bd.turn else 'Noirs'}" + (", mat sur l'échiquier" if bd.is_checkmate() else ""), flush=True)
+        if bd.is_game_over(): continue
+        for x in eng.analyse(bd, chess.engine.Limit(time=T), multipv=3): print(ligne(x, bd), flush=True)
+        for c in [c for c in cands.split(",") if c]:
+            try: mv = bd.parse_san(fr2en(c))
+            except Exception: print(f"  {c}: coup illégal ici"); continue
+            x = eng.analyse(bd, chess.engine.Limit(time=T), root_moves=[mv]); print(f"  {c} seulement ->" + ligne(x, bd)[1:], flush=True)
+    eng.quit()
 def stats(aj, pj=None):
     """Indicateur de triche: perte moyenne par coup (plafonnée à 10 points), coups au niveau
     du moteur, erreurs de plus d'un point, pour chaque camp, à partir du 3e coup."""
@@ -226,6 +293,57 @@ def stats(aj, pj=None):
         print(f"- {name}: {round(100 * sum(losses) / len(losses))} centièmes par coup, {top} coups sur {len(losses)} au niveau du moteur, {len(errs)} erreurs de plus d'un point: {', '.join(errs) or 'aucune'}")
     tags = [f"{a['ply'] // 2 + 1}{'.' if a['ply'] % 2 == 0 else '...'}{a['san']} {auto_tag(a)}" for a in an if auto_tag(a) != "bon"]
     print("Etiquettes automatiques (coups qui ne sont pas notés bon):", ", ".join(tags) or "aucune")
+    mm = mats_manques(an)
+    if mm: print("Mats manqués (mat forcé disponible, coup joué sans mat forcé):", ", ".join(mm))
+def mats_manques(an):
+    out = []
+    for a in an:
+        if not a["best"] or len(a["best"][0]) < 4: continue
+        s = 1 if a["ply"] % 2 == 0 else -1; m = a["best"][0][3]; m2 = a.get("mate")
+        if m is None or m * s <= 0: continue
+        garde = m2 is not None and (m2 == 0 or m2 * s > 0)
+        if garde and abs(m2) <= abs(m): continue
+        out.append(f"{a['ply'] // 2 + 1}{'.' if s == 1 else '...'}{a['san']} (mat en {abs(m)} par {a['best'][0][0]}" + (f", il reste un mat en {abs(m2)}" if garde else "") + ")")
+    return out
+def resume_indicateur(an, pend):
+    """Une phrase par camp pour la fiche: perte moyenne, coups au niveau du moteur, erreurs."""
+    out = []
+    for side, name in ((0, "Blancs"), (1, "Noirs")):
+        losses, top, errs = [], 0, 0
+        for a in an:
+            if a["ply"] % 2 != side or a["ply"] < 4 or not a["best"]: continue
+            l = a["best"][0][1] - a["after"]; l = max(0, min(10, l if side == 0 else -l)); losses.append(l)
+            if a["san"].rstrip("+#") == a["best"][0][0].rstrip("+#") or l <= 0.1: top += 1
+            if l > 1: errs += 1
+        if losses: out.append(f"{name} {round(100 * sum(losses) / len(losses))} centièmes par coup, {top} coups sur {len(losses)} au niveau du moteur, {errs} erreurs de plus d'un point")
+    return "; ".join(out)
+def resume_pendule_court(mv_list, pend):
+    out = []
+    for side, name in ((0, "Blancs"), (1, "Noirs")):
+        pts = [q for i, q in enumerate(pend) if q and i % 2 == side]
+        if pts: out.append(f"{name} {mmss(sum(q[1] for q in pts))} utilisées, {mmss(pts[-1][0])} restantes, {sum(1 for q in pts if q[1] < 3)} coups sur {len(pts)} en moins de 3 s")
+    return "; ".join(out)
+def ouverture_nom(mv_list):
+    noms = [o for o in ouvertures(mv_list) if o and o.startswith("Théorie: ") and "inhabituel" not in o]
+    return noms[-1][9:].rsplit(" (", 1)[0] if noms else "ouverture non reconnue"
+def fiche(p, an, out_fiche="fiche.md", out_index="index.txt"):
+    """Fiche joueur/parties/partie-NNN.md et ligne d'index, d'après partie.json (numero, titre, lecons, mots_cles, meta) et analyse.json."""
+    mv_list = moves_of(p["coups"]); m = p.get("meta") or {}; n = p["numero"]
+    couleur = m.get("couleur") or ("Noirs" if p.get("flip") else "Blancs"); plat = m.get("plateforme", "?"); date = m.get("date", "?")
+    res = f"{m.get('resultat', 'résultat inconnu')} au {m.get('nb_coups', (len(mv_list) + 1) // 2)}e coup"; ouv = ouverture_nom(mv_list)
+    titre = p.get("titre") or "aucune"; pend = p.get("pendule") or []
+    lignes = [f"# Partie {n} ({date}), {plat}, avec les {couleur}, {ouv}, {res}",
+              f"{m.get('blancs', 'Blancs')} ({m.get('elo_blancs', '?')}) contre {m.get('noirs', 'Noirs')} ({m.get('elo_noirs', '?')}), cadence {m.get('cadence', '?')}. Analyse: \"{titre}\".",
+              p["coups"], "", "Leçons:"] + [f"- {l}" for l in p.get("lecons", [])]
+    if pend: lignes.append(f"- Pendule: {resume_pendule_court(mv_list, pend)}.")
+    lignes.append(f"- Indicateur de triche (information, pas un verdict): {resume_indicateur(an, pend)}.")
+    mm = mats_manques(an)
+    if mm: lignes.append(f"- Mats manqués: {', '.join(mm)}.")
+    open(out_fiche, "w").write("\n".join(lignes) + "\n")
+    mots = p.get("mots_cles") or [ouv]
+    ligne = f"| {n} | {date} | {plat}, {couleur}, {res} | {'; '.join(mots)} | {titre} |"
+    open(out_index, "w").write(ligne + "\n")
+    print(f"fiche: {out_fiche} (a écrire dans joueur/parties/partie-{n:03d}.md par local_path)"); print("ligne d'index:", ligne)
 def clair(b, mv):
     import chess
     NAME = {chess.PAWN: ("pion", "m"), chess.KNIGHT: ("cavalier", "m"), chess.BISHOP: ("fou", "m"),
@@ -290,6 +408,9 @@ def commentaires(p, mv_list):
 def build(pj, aj, tpl, out):
     import chess
     p = json.load(open(pj)); an = json.load(open(aj)); mv_list = moves_of(p["coups"])
+    comp = os.path.join(os.path.dirname(pj) or ".", "complement.json")
+    if os.path.exists(comp):
+        p.update(json.load(open(comp))); json.dump(p, open(pj, "w"), ensure_ascii=False, indent=1); print("complement.json fusionné dans", pj)
     for k, v in {"titre": "Analyse de la partie", "flip": False, "depart": "Position de départ.", "entete": "", "remarques": "", "bilan": "", "variantes": [], "commentaires": {}}.items():
         if p.get(k) is None: p[k] = v
     assert len(mv_list) == len(an), "analyse.json ne correspond pas aux coups"
@@ -321,11 +442,28 @@ def build(pj, aj, tpl, out):
     h = h.replace("__FLIP__", "true" if p["flip"] else "false").replace("__DEPART__", json.dumps(p["depart"], ensure_ascii=False))
     if "__PIECES__" in h: h = h.replace("__PIECES__", pieces_js())
     open(out, "w").write(h); check_js(h); print("ok", out, len(h))
-def analyser(pseudo, choix, lichess=False):
+    if p.get("numero"): fiche(p, an)
+    else: print("pas de numero dans partie.json: fiche et ligne d'index non générées")
+def squelette(p):
+    """Ce que Claude ajoute à partie.json avant build (affiché à la fin de analyser)."""
+    m = p.get("meta") or {}; j = "Noirs" if p.get("flip") else "Blancs"; a = "Blancs" if j == "Noirs" else "Noirs"
+    ex = {"numero": "<dernier numéro de l'index + 1, archives comprises>", "titre": "<thème clé, 2 à 4 mots>",
+          "entete": f"<div class='eyebrow'><span>{m.get('plateforme', 'plateforme')}, {m.get('date', 'JJ/MM/AAAA')}</span><span>Avec les {j}</span></div>\n<h1><titre></h1>\n<p class='players'><strong>{m.get('blancs', 'Blancs')}</strong> (Blancs, {m.get('elo_blancs', '?')}) contre <strong>{m.get('noirs', 'Noirs')}</strong> (Noirs, {m.get('elo_noirs', '?')}). <ouverture>, <span class='mono'><premiers coups></span>. <résultat> <span class='result'><mot clé du résultat></span></p>",
+          "commentaires": {"<coup, ex. 9...Te8>": {"text": "<commentaire>", "tag": "<facultatif: excellent, bon, imprecis, erreur, gaffe>", "best": "<facultatif, coup en français>", "rouge": [["<case>", "<case>"]]}},
+          "remarques": "<facultatif, HTML: réponses aux remarques du joueur>",
+          "bilan": "<div class='cols'><div class='card'><h3>Points positifs</h3><ul><li>...</li></ul></div><div class='card'><h3>A retenir</h3><ul><li>...</li></ul></div></div>\n<p class='key'><b>Leçon clé.</b> ...</p>",
+          "lecons": ["<coup, symbole, explication courte et meilleure alternative>", "Remarque du joueur: \"...\". <réponse>", "Points positifs: ..."],
+          "mots_cles": ["<ouverture>", "<4 ou 5 thèmes, sans coups ni chiffres>"]}
+    print("\nA écrire dans complement.json (fusionné dans partie.json par build). Ne commenter que les coups qui comptent (une douzaine au plus):")
+    print("{\n" + ",\n".join(f" {json.dumps(k)}: {json.dumps(v, ensure_ascii=False)}" for k, v in ex.items()) + "\n}")
+    print("Commande suivante, en une seule étape: cat > complement.json <<'EOF' ... EOF && python3 outils-analyse.py build partie.json analyse.json modele-analyse.html page.html")
+def analyser(pseudo, choix, lichess=False, pgn=None):
     import time; t0 = time.time()
     if not os.path.exists(SF): setup()
     if "BUDGET" not in os.environ: os.environ["BUDGET"] = str(max(30, 95 - (time.time() - t0)))
-    recuperer(pseudo, choix, "partie.json", lichess); analyse("partie.json", "analyse.json")
+    if pgn: importer_pgn(pgn, pseudo, "partie.json")
+    else: recuperer(pseudo, choix, "partie.json", lichess)
+    analyse("partie.json", "analyse.json"); squelette(json.load(open("partie.json")))
 def check_js(h):
     node = shutil.which("node")
     if not node: print("attention: node absent, syntaxe du script non vérifiée"); return
@@ -337,5 +475,10 @@ def check_js(h):
     print("script de la page: syntaxe ok")
 if __name__ == "__main__":
     a = sys.argv[1:]; LI = "--lichess" in a; a = [x for x in a if x != "--lichess"]
-    {"analyser": lambda: analyser(a[1], a[2], LI), "setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]), "stats": lambda: stats(a[1], a[2] if len(a) > 2 else None), "parties": lambda: lister(a[1], int(a[2]) if len(a) > 2 else 10, LI),
-     "recuperer": lambda: recuperer(a[1], a[2], a[3] if len(a) > 3 else "partie.json", LI), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])), "build": lambda: build(*a[1:5])}[a[0]]()
+    PGN = a[a.index("--pgn") + 1] if "--pgn" in a else None
+    if PGN: a = [x for x in a if x not in ("--pgn", PGN)]
+    {"analyser": lambda: analyser(a[1] if len(a) > 1 else None, a[2] if len(a) > 2 else None, LI, PGN), "setup": lambda: setup(), "analyse": lambda: analyse(*a[1:3]),
+     "stats": lambda: stats(a[1], a[2] if len(a) > 2 else None), "parties": lambda: lister(a[1], int(a[2]) if len(a) > 2 else 10, LI),
+     "recuperer": lambda: recuperer(a[1], a[2], a[3] if len(a) > 3 else "partie.json", LI), "importer": lambda: importer_pgn(PGN or a[1], a[2] if len(a) > 2 else None),
+     "verifier": lambda: verifier(a[1], a[2:]), "ouvertures": lambda: afficher_ouvertures(moves_of(json.load(open(a[1]))["coups"])),
+     "build": lambda: build(*a[1:5]), "fiche": lambda: fiche(json.load(open(a[1])), json.load(open(a[2])))}[a[0]]()
