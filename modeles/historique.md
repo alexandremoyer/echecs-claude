@@ -1,6 +1,6 @@
 # Historique des parties (index)
 
-Une ligne courte par partie du mois en cours. Le détail de chaque partie (coups, leçons, remarques du joueur, chiffres) est dans joueur/parties/partie-NNN.md (numéro sur trois chiffres: partie-001.md, partie-002.md...).
+Une ligne courte par partie indexée pendant le mois en cours (quelle que soit la date de la partie). Le détail de chaque partie (coups, leçons, remarques du joueur, chiffres) est dans joueur/parties/partie-NNN.md (numéro sur trois chiffres: partie-001.md, partie-002.md...).
 
 Pour retrouver une partie: chercher un mot-clé dans cette page, puis dans les archives si besoin, et ouvrir seulement les fiches utiles.
 
