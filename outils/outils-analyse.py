@@ -328,7 +328,7 @@ def ouverture_nom(mv_list):
     return noms[-1][9:].rsplit(" (", 1)[0] if noms else "ouverture non reconnue"
 def fiche(p, an, out_fiche="fiche.md", out_index="index.txt"):
     """Fiche joueur/parties/partie-NNN.md et ligne d'index, d'après partie.json (numero, titre, lecons, mots_cles, meta) et analyse.json."""
-    mv_list = moves_of(p["coups"]); m = p.get("meta") or {}; n = p["numero"]
+    mv_list = moves_of(p["coups"]); m = p.get("meta") or {}; n = int(re.search(r"\d+", str(p["numero"])).group())
     couleur = m.get("couleur") or ("Noirs" if p.get("flip") else "Blancs"); plat = m.get("plateforme", "?"); date = m.get("date", "?")
     res = f"{m.get('resultat', 'résultat inconnu')} au {m.get('nb_coups', (len(mv_list) + 1) // 2)}e coup"; ouv = ouverture_nom(mv_list)
     titre = p.get("titre") or "aucune"; pend = p.get("pendule") or []
@@ -343,7 +343,7 @@ def fiche(p, an, out_fiche="fiche.md", out_index="index.txt"):
     mots = p.get("mots_cles") or [ouv]
     ligne = f"| {n} | {date} | {plat}, {couleur}, {res} | {'; '.join(mots)} | {titre} |"
     open(out_index, "w").write(ligne + "\n")
-    print(f"fiche: {out_fiche} (a écrire dans joueur/parties/partie-{n:03d}.md par local_path)"); print("ligne d'index:", ligne)
+    print(f"fiche: {os.path.abspath(out_fiche)} (à écrire dans joueur/parties/partie-{n:03d}.md par local_path, chemin absolu)"); print("ligne d'index:", ligne)
 def clair(b, mv):
     import chess
     NAME = {chess.PAWN: ("pion", "m"), chess.KNIGHT: ("cavalier", "m"), chess.BISHOP: ("fou", "m"),
@@ -442,19 +442,19 @@ def build(pj, aj, tpl, out):
     h = h.replace("__FLIP__", "true" if p["flip"] else "false").replace("__DEPART__", json.dumps(p["depart"], ensure_ascii=False))
     if "__PIECES__" in h: h = h.replace("__PIECES__", pieces_js())
     open(out, "w").write(h); check_js(h); print("ok", out, len(h))
-    if p.get("numero"): fiche(p, an)
+    if p.get("numero") not in (None, "", 0): fiche(p, an)
     else: print("pas de numero dans partie.json: fiche et ligne d'index non générées")
 def squelette(p):
     """Ce que Claude ajoute à partie.json avant build (affiché à la fin de analyser)."""
     m = p.get("meta") or {}; j = "Noirs" if p.get("flip") else "Blancs"; a = "Blancs" if j == "Noirs" else "Noirs"
-    ex = {"numero": "<dernier numéro de l'index + 1, archives comprises>", "titre": "<thème clé, 2 à 4 mots>",
+    ex = {"numero": 0, "titre": "<thème clé, 2 à 4 mots>",
           "entete": f"<div class='eyebrow'><span>{m.get('plateforme', 'plateforme')}, {m.get('date', 'JJ/MM/AAAA')}</span><span>Avec les {j}</span></div>\n<h1><titre></h1>\n<p class='players'><strong>{m.get('blancs', 'Blancs')}</strong> (Blancs, {m.get('elo_blancs', '?')}) contre <strong>{m.get('noirs', 'Noirs')}</strong> (Noirs, {m.get('elo_noirs', '?')}). <ouverture>, <span class='mono'><premiers coups></span>. <résultat> <span class='result'><mot clé du résultat></span></p>",
           "commentaires": {"<coup, ex. 9...Te8>": {"text": "<commentaire>", "tag": "<facultatif: excellent, bon, imprecis, erreur, gaffe>", "best": "<facultatif, coup en français>", "rouge": [["<case>", "<case>"]]}},
           "remarques": "<facultatif, HTML: réponses aux remarques du joueur>",
           "bilan": "<div class='cols'><div class='card'><h3>Points positifs</h3><ul><li>...</li></ul></div><div class='card'><h3>A retenir</h3><ul><li>...</li></ul></div></div>\n<p class='key'><b>Leçon clé.</b> ...</p>",
           "lecons": ["<coup, symbole, explication courte et meilleure alternative>", "Remarque du joueur: \"...\". <réponse>", "Points positifs: ..."],
-          "mots_cles": ["<ouverture>", "<4 ou 5 thèmes, sans coups ni chiffres>"]}
-    print("\nA écrire dans complement.json (fusionné dans partie.json par build). Ne commenter que les coups qui comptent (une douzaine au plus):")
+          "mots_cles": ["<ouverture>", "<4 ou 5 thèmes, sans coups ni chiffres, en minuscules>"]}
+    print("\nA écrire dans complement.json (fusionné dans partie.json par build). numero: un nombre, le dernier numéro de l'index + 1, archives comprises. Ne commenter que les coups qui comptent (une douzaine au plus):")
     print("{\n" + ",\n".join(f" {json.dumps(k)}: {json.dumps(v, ensure_ascii=False)}" for k, v in ex.items()) + "\n}")
     print("Commande suivante, en une seule étape: cat > complement.json <<'EOF' ... EOF && python3 outils-analyse.py build partie.json analyse.json modele-analyse.html page.html")
 def analyser(pseudo, choix, lichess=False, pgn=None):

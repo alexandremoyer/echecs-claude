@@ -45,6 +45,7 @@ Parties chess.com et Lichess: Claude peut récupérer une partie directement ave
 - **Analyser une autre partie**: coller le PGN (sur chess.com ou Lichess, bouton de partage puis PGN). Plusieurs PGN peuvent être envoyés dans la même conversation.
 - **La page d'analyse** est envoyée dans la conversation comme fichier, affiché directement. Pour une page publiée avec un lien partageable (artifact), le demander.
 - **Variantes**: désactivées par défaut. Les demander juste après avoir vu la page, dans la même conversation: Claude les ajoute en une étape. Dans une autre conversation, il faudrait refaire l'analyse.
+- **Conversations**: la réponse de Claude se termine par un titre proposé pour la conversation (numéro de la partie et thème), à reprendre pour la renommer.
 - **Suivi**: après chaque partie ou analyse, Claude met à jour les fiches joueur/. On peut les relire et les corriger à tout moment. L'index des parties ne garde que le mois en cours; les mois passés sont archivés dans joueur/historique-AAAA-MM.md.
 - **Modèle**: le gros du travail d'une analyse (moteur, étiquettes, ouverture, pendule, indicateur, page, fiche) est fait par le script. La rédaction des commentaires convient à Sonnet; Opus reste utile pour les parties jouées de tête dans la conversation.
 
