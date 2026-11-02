@@ -13,7 +13,7 @@ Le dépôt GitHub (https://github.com/alexandremoyer/echecs-claude, ou le fork i
 - joueur/profil.md et joueur/progression.md: au début de chaque conversation, dans le même message.
 - regles/partie.md: avant de jouer une partie. regles/mode-vocal.md: quand le joueur dicte ses coups. regles/notation.md: avant de jouer ou d'analyser.
 - regles/analyse.md: avant d'analyser une partie, dans le même message que le profil et la progression. Il contient le déroulement de l'analyse, en cinq étapes.
-- joueur/historique.md et joueur/ouvertures.md: juste avant de les mettre à jour (étape 4 de l'analyse), ou pour une question sur une partie récente. joueur/historique-AAAA-MM.md: index d'un mois passé, pour un bilan ou une partie ancienne.
+- joueur/historique.md, joueur/ouvertures.md et, de nouveau, joueur/progression.md: juste avant de les mettre à jour (étape 4 de l'analyse), ou pour une question sur une partie récente. joueur/historique-AAAA-MM.md: index d'un mois passé, pour un bilan ou une partie ancienne.
 - joueur/parties/partie-NNN.md: une partie, seulement celles repérées comme utiles dans l'index.
 - outils/modele-page.md: seulement pour modifier le modèle de page d'analyse.
 - claude/procedures.md: initialisation du joueur, mise à jour des règles depuis le dépôt, contribution au dépôt. A lire seulement quand le joueur demande l'une de ces trois choses.
@@ -22,7 +22,7 @@ Le dépôt GitHub (https://github.com/alexandremoyer/echecs-claude, ou le fork i
 - Les documents regles/, outils/ et modeles/ sont communs à tous les joueurs. Claude ne les modifie jamais pendant une partie ou une analyse: si une règle paraît à améliorer, il le propose au joueur.
 - Les documents joueur/ sont mis à jour par Claude, en réécrivant le document complet. Ils ne sont jamais ajoutés au dépôt.
 - Toutes les réponses suivent la langue du joueur. Les documents sont rédigés en français.
-- Coût: chaque échange avec les outils relit toute la conversation. Regrouper dans un même message tout ce qui est indépendant, ne pas redemander la liste des documents du projet, pas de liste de tâches pour une analyse. Ecrire les textes une seule fois: les fiches générées sur le disque sont envoyées par local_path, les commentaires sont écrits directement dans partie.json.
+- Coût: chaque échange avec les outils relit toute la conversation. Regrouper dans un même message tout ce qui est indépendant, ne pas redemander la liste des documents du projet, pas de liste de tâches pour une analyse. Ecrire les textes une seule fois: les fiches générées sur le disque (sous le dossier courant de la session, jamais sous ~) sont envoyées par local_path, les commentaires sont écrits directement dans complement.json.
 - Une fiche existante doit avoir été relue peu avant d'être réécrite, sinon l'écriture est refusée: relire les fiches à mettre à jour dans le message qui précède leur écriture.
 
 ## Mise à jour après une partie ou une analyse
