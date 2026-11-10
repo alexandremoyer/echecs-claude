@@ -353,7 +353,7 @@ function renderBoard() {
   else if (cur > 0) for (const a of p.arrows) svg += arrow(a.frm, a.to, c.red);
   paint(mainSq, arrowsEl, useAlt ? p.before : p.fen, (!useAlt && cur > 0) ? [p.frm, p.to] : [], svg);
   const note = document.getElementById("viewNote");
-  if (useAlt) note.innerHTML = `Position <strong>avant</strong> ${moveLabel(p)}. Flèche verte: meilleur coup, <strong>${bestLabel(p)}</strong>${p.best.played ? " (c'est le coup joué)" : ""}.`;
+  if (useAlt) note.innerHTML = `Position <strong>avant</strong> ${moveLabel(p)}. Flèche verte: meilleur ${p.best.idee ? "autre " : ""}coup, <strong>${bestLabel(p)}</strong>${p.best.played ? " (c'est le coup joué)" : ""}.`;
   else if (cur === 0) note.textContent = "Position de départ. Les " + (FLIP ? "Noirs" : "Blancs") + " sont en bas. Flèches du clavier pour avancer.";
   else note.textContent = "Position après " + moveLabel(p) + ".";
 }
@@ -379,7 +379,8 @@ function renderCard() {
   tag.hidden = false; tag.textContent = t.label; tag.style.color = t.color;
   clair.textContent = p.clair; text.textContent = p.text; text.hidden = !p.text;
   bestLine.hidden = false;
-  bestLine.textContent = p.best.played ? "Meilleur coup selon le moteur: " + bestLabel(p) + ", c'est le coup joué." : "Meilleur coup selon le moteur: " + bestLabel(p) + ".";
+  if (p.best.idee) bestLine.textContent = "Meilleur coup en dehors de " + p.best.idee + ", déjà signalé au coup " + p.best.depuis + ": " + bestLabel(p) + (p.best.played ? ", c'est le coup joué." : ".");
+  else bestLine.textContent = p.best.played ? "Meilleur coup selon le moteur: " + bestLabel(p) + ", c'est le coup joué." : "Meilleur coup selon le moteur: " + bestLabel(p) + ".";
 }
 function renderBestBtn() {
   const btn = document.getElementById("bestBtn");
