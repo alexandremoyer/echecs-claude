@@ -395,8 +395,8 @@ def etiquettes(an):
     """Etiquette de chaque coup, avec la règle de l'idée manquée signalée une seule fois.
     Quand le meilleur coup du moteur reste le même (même pièce, même case) plusieurs coups de
     suite pour un camp sans être joué, il n'est reproché qu'au premier coup: les suivants sont
-    jugés par rapport au meilleur des autres coups. L'idée est signalée de nouveau si la manquer
-    devient plus grave (étiquette brute plus sévère que celle déjà signalée).
+    jugés par rapport au meilleur des autres coups. Si l'occasion manquée devient plus grave, elle est
+    signalée de nouveau (étiquette brute plus sévère que celle déjà signalée).
     Retourne une liste de {"tag", "rep"}; rep: None, ou {"idee", "depuis", "alt"} (coup manqué,
     coup où il a été signalé, meilleur autre coup)."""
     import chess
