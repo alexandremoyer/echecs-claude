@@ -291,8 +291,11 @@ def stats(aj, pj=None):
                 errs.append(f"{a['ply'] // 2 + 1}{'.' if side == 0 else '...'}{a['san']} ({l:.1f}{', joué en ' + duree(t[1]) if t else ''})")
         if not losses: continue
         print(f"- {name}: {round(100 * sum(losses) / len(losses))} centièmes par coup, {top} coups sur {len(losses)} au niveau du moteur, {len(errs)} erreurs de plus d'un point: {', '.join(errs) or 'aucune'}")
-    tags = [f"{a['ply'] // 2 + 1}{'.' if a['ply'] % 2 == 0 else '...'}{a['san']} {auto_tag(a)}" for a in an if auto_tag(a) != "bon"]
+    et = etiquettes(an); lab = lambda a: f"{a['ply'] // 2 + 1}{'.' if a['ply'] % 2 == 0 else '...'}{a['san']}"
+    tags = [f"{lab(a)} {e['tag']}" for a, e in zip(an, et) if e["tag"] != "bon"]
     print("Etiquettes automatiques (coups qui ne sont pas notés bon):", ", ".join(tags) or "aucune")
+    reps = [f"{lab(a)} ({e['rep']['idee']} déjà signalé au coup {e['rep']['depuis']}, jugé par rapport à {e['rep']['alt']}: {e['tag']})" for a, e in zip(an, et) if e["rep"]]
+    if reps: print("Idées manquées déjà signalées (ne pas les reprocher de nouveau, commenter le coup joué):", ", ".join(reps))
     mm = mats_manques(an)
     if mm: print("Mats manqués (mat forcé disponible, coup joué sans mat forcé):", ", ".join(mm))
 def mats_manques(an):
@@ -375,17 +378,44 @@ def pieces_js():
         svg = '<svg xmlns="http://www.w3.org/2000/svg" width="45" height="45">' + g + "</svg>"
         out[sym] = "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
     return json.dumps(out)
-def auto_tag(a):
-    """Etiquette d'après la perte mesurée par le moteur (voir regles/analyse.md)."""
+def auto_tag(a, ref=0):
+    """Etiquette d'après la perte mesurée par le moteur (voir regles/analyse.md).
+    ref: rang du coup du moteur qui sert de référence (0: le meilleur coup)."""
     if not a["best"]: return "bon"
     s = 1 if a["ply"] % 2 == 0 else -1
-    before = max(-10, min(10, s * a["best"][0][1])); after = max(-10, min(10, s * a["after"]))
+    before = max(-10, min(10, s * a["best"][ref][1])); after = max(-10, min(10, s * a["after"]))
     loss = max(0, before - after)
     if loss <= 0.5: return "bon"
     if after >= 5 or (before <= -5 and loss <= 2.5): return "imprecis"
     if loss <= 1 or (loss <= 2.5 and abs(after) < 1): return "imprecis"
     if loss <= 2.5: return "erreur"
     return "erreur" if after >= 1.5 else "gaffe"
+GRAVITE = {"bon": 0, "imprecis": 1, "erreur": 2, "gaffe": 3}
+def etiquettes(an):
+    """Etiquette de chaque coup, avec la règle de l'idée manquée signalée une seule fois.
+    Quand le meilleur coup du moteur reste le même (même pièce, même case) plusieurs coups de
+    suite pour un camp sans être joué, il n'est reproché qu'au premier coup: les suivants sont
+    jugés par rapport au meilleur des autres coups. Si l'occasion manquée devient plus grave, elle est
+    signalée de nouveau (étiquette brute plus sévère que celle déjà signalée).
+    Retourne une liste de {"tag", "rep"}; rep: None, ou {"idee", "depuis", "alt"} (coup manqué,
+    coup où il a été signalé, meilleur autre coup)."""
+    import chess
+    out = []; idee = [None, None]
+    for a in an:
+        side = a["ply"] % 2; brut = auto_tag(a)
+        if not a["best"]: out.append({"tag": brut, "rep": None}); idee[side] = None; continue
+        b = chess.Board(a["fen_before"]); joue = b.parse_san(fr2en(a["san"])); top = b.parse_san(fr2en(a["best"][0][0]))
+        lab = f"{a['ply'] // 2 + 1}{'.' if side == 0 else '...'}"
+        if joue == top: out.append({"tag": brut, "rep": None}); idee[side] = None; continue
+        if brut == "bon": out.append({"tag": brut, "rep": None}); continue
+        c = idee[side]
+        if c and c["coup"] == top and GRAVITE[brut] <= c["gravite"] and len(a["best"]) > 1:
+            out.append({"tag": auto_tag(a, 1), "rep": {"idee": a["best"][0][0], "depuis": c["depuis"], "alt": a["best"][1][0]}})
+            continue
+        if c and c["coup"] == top: c["gravite"] = max(c["gravite"], GRAVITE[brut]); c["depuis"] = lab + a["san"]
+        else: idee[side] = {"coup": top, "gravite": GRAVITE[brut], "depuis": lab + a["san"]}
+        out.append({"tag": brut, "rep": None})
+    return out
 def labels(mv_list):
     import chess
     b = chess.Board(); out = []
@@ -415,16 +445,18 @@ def build(pj, aj, tpl, out):
         if p.get(k) is None: p[k] = v
     assert len(mv_list) == len(an), "analyse.json ne correspond pas aux coups"
     com = commentaires(p, mv_list); ops = ouvertures(mv_list); pend = p.get("pendule") or []
-    b = chess.Board(); PL = [{"fen": b.board_fen(), "eval": 0.3, "mate": None}]; befores = []
+    b = chess.Board(); PL = [{"fen": b.board_fen(), "eval": 0.3, "mate": None}]; befores = []; et = etiquettes(an)
     for k, m in enumerate(mv_list):
         c = com.get(k, {}); mv = b.parse_san(fr2en(m)); before = b.board_fen(); befores.append(b.fen())
-        bsan = c.get("best") or an[k]["best"][0][0]; bm = b.parse_san(fr2en(bsan))
+        rep = et[k]["rep"]
+        bsan = c.get("best") or (rep["alt"] if rep else an[k]["best"][0][0]); bm = b.parse_san(fr2en(bsan))
         cl = clair(b, mv); san = en2fr(b.san(mv)); b.push(mv)
         ev = an[k]["after"]; ev = max(-100, min(100, ev))
         PL.append({"num": k // 2 + 1, "side": "B" if k % 2 == 0 else "N", "san": san, "clair": cl,
                    "fen": b.board_fen(), "before": before, "frm": mv.uci()[:2], "to": mv.uci()[2:4],
-                   "eval": round(ev, 1), "mate": None, "opening": ops[k], "clock": f"Pendule: coup joué en {duree(pend[k][1])}, reste {mmss(pend[k][0])}" if k < len(pend) and pend[k] else None, "tag": c.get("tag") or auto_tag(an[k]), "text": c.get("text", ""),
-                   "best": {"san": en2fr(chess.Board(befores[-1]).san(bm)), "frm": bm.uci()[:2], "to": bm.uci()[2:4], "played": bm == mv},
+                   "eval": round(ev, 1), "mate": None, "opening": ops[k], "clock": f"Pendule: coup joué en {duree(pend[k][1])}, reste {mmss(pend[k][0])}" if k < len(pend) and pend[k] else None, "tag": c.get("tag") or et[k]["tag"], "text": c.get("text", ""),
+                   "best": {"san": en2fr(chess.Board(befores[-1]).san(bm)), "frm": bm.uci()[:2], "to": bm.uci()[2:4], "played": bm == mv,
+                            "idee": rep["idee"] if rep and not c.get("best") else None, "depuis": rep["depuis"] if rep else None},
                    "arrows": [{"kind": "threat", "frm": a, "to": z} for a, z in c.get("rouge", [])]})
     befores.append(b.fen())
     V = []

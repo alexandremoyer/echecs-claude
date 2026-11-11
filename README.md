@@ -3,7 +3,7 @@
 Un projet claude.ai pour progresser aux échecs avec Claude:
 - jouer des parties dans la conversation, à l'écrit ou en mode vocal;
 - faire analyser ses parties jouées en ligne (récupérées directement sur chess.com ou Lichess avec son pseudo, ou PGN collé);
-- obtenir pour chaque partie une page d'analyse interactive, vérifiée avec le moteur Stockfish: étiquette de chaque coup, commentaires sur les coups importants, suivi de l'ouverture et de ses variantes, pendule (parties récupérées), mats manqués, variantes à rejouer sur demande;
+- obtenir pour chaque partie une page d'analyse interactive, vérifiée avec le moteur Stockfish: étiquette de chaque coup (une idée manquée plusieurs coups de suite n'est reprochée qu'une fois), commentaires sur les coups importants, suivi de l'ouverture et de ses variantes, pendule (parties récupérées), mats manqués, variantes à rejouer sur demande;
 - garder un suivi de sa progression: ouvertures, points faibles, historique des parties.
 
 ## Contenu du dépôt
